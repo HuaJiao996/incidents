@@ -1,0 +1,77 @@
+仪表盘（dashboard）
+    用户所属的Service列表
+        分配个用户的Incident列表
+    用户当前的值班时间
+
+
+事件（incident）
+    事件列表
+        事件所属Service
+        事件时间
+        解决时间
+        Incident 类型
+        Incident Id
+        事件状态
+        事件级别
+        事件描述
+        负责人
+    事件详细
+        事件所属Service
+        事件时间
+        解决时间
+        Incident 类型
+        Incident Id
+        事件状态
+        事件级别
+        事件描述
+        负责人
+        告警列表
+        Comment列表
+        时间线
+
+服务（service）
+    新建服务按钮
+    服务Card列表
+        服务名称
+        服务描述
+        基于级别的未解决Incident数量
+
+    服务详情
+        服务名称
+        服务描述
+        Incident 类型列表
+            名字
+            描述
+            未解决Incident数量
+            当前值班人员
+        配置
+            Incident级别
+            告警内容项目配置
+            值班配置
+
+分析（Analytics）
+    
+
+告警（alert）
+    告警列表
+        告警所属Service
+        告警时间
+        Incident 类型
+        Incident Id
+
+        
+
+
+        
+        
+
+            
+        
+        
+        
+    
+    
+    
+    
+    
+

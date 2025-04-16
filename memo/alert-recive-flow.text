@@ -1,0 +1,66 @@
+//#region [Lambda] AlertReceiver  runtime<30s
+    -事件接受处理 POST /alert/?:serviceId
+    ||Alert事件JSON, Service Id
+    |--> 判断事件JSON是否符合Global fields
+        |+符合--> 判断是否存在Service Id
+        |      |+存在-> 返回 {Service处理} 执行结果
+        |      |+不存在-> 返回 {Service Route处理} 执行结果
+        |+不符合-> 返回400错误 msg: "Alert事件JSON不符合Global fields"
+
+    -Service Route处理
+    ||Alert事件JSON
+    |-> 获取所有Service Route
+    |-> 通过Service Route的conditions判断Alert事件JSON 获取匹配的Service Route
+        |--> 是否有匹配的Service
+            |+存在 -> 返回 {Service处理} 执行结果
+            |+不存在 -> 返回400错误 msg: "未找到匹配的Service"
+
+    -Service 处理
+    ||Service Id, Alert事件JSON
+    |-> 根据Service Id获取Service Fields
+        |--> 判断事件JSON是否符合Service Fields
+            |+符合 -> 向DB中插入Alert数据 关联Service
+            |       |-> 将Alert Id 投入到SQS中
+            |       |-> 返回200
+            |+不符合-> 返回400错误 msg: "Alert事件JSON不符合Service Fields"
+    //#endregion
+
+//#region [SQS] 
+    -SQS 配置
+    -- 队列名称: AlertQueue
+    -- 队列URL: https://sqs.us-east-1.amazonaws.com/123456789012/AlertQueue
+    -- 队列类型: Standard
+    -- 队列消息处理程序: AlertHandler
+    -- 队列消息处理程序参数: AlertId
+//#endregion
+
+//#region [Lambda] AlertHandler  runtime< 15m
+    -SQS 消息处理
+    ||AlertId
+    |-> 根据AlertId获取Alert数据以及关联的Service Incident Type List
+        |-> 根据Service Incident Type List 中的Incident Type 获取Incident Type Config
+            |-> 根据Incident Type Config 中的Condition 判断Alert数据 获取到匹配的Incident Type
+                |--> 根据匹配的Incident Type 确认当前Incident Type中是否存在未Resolved的Incident
+                    |+存在 -> 将Alert数据更新到Incident中
+                            |--> 根据匹配的Incident Type Status Condition 判断Alert数据的状态
+                                |+Resolved -> 将Incident数据更新为Resolved
+                                |+Unresolved -> 不处理
+                    |+不存在 |--> 根据匹配的Incident Type Status Condition 判断Alert数据的状态
+                                |+Resolved -> 不处理
+                                |+Unresolved |-> 创建Incident
+                                             |-> 执行{Incident分配}
+                                             |-> 处理结束
+//#endregion
+
+//#region [Lambda] IncidentAssigner
+    -Incident分配
+    ||IncidentId
+    |-> 根据IncidentId获取Incident数据及Schedule数据
+    |--> 根据Schedule数据中的配置判断是否需要进行Incident分配
+        |+需要 -> 根据Schedule数据中的配置判断是否需要进行Incident分配
+            
+        |+不需要 -> 处理结束
+//#endregion
+
+
+
