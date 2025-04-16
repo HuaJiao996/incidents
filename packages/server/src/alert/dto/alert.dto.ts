@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty } from "class-validator";
+import { IsEmpty, IsNotEmpty } from "class-validator";
 import { AlertType } from "../../database/schema";
 
 export class AlertDto {
@@ -7,8 +7,8 @@ export class AlertDto {
     @IsNotEmpty()
     title: string;
     @ApiProperty()
-    @IsNotEmpty()
-    type: AlertType;
+    @IsEmpty()
+    type: AlertType | undefined;
 
     @ApiProperty()
     @IsNotEmpty()

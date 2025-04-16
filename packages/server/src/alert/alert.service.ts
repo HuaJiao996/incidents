@@ -4,19 +4,20 @@ import { Queue } from 'bullmq';
 import { AlertDto } from './dto/alert.dto';
 import { Engine, TopLevelCondition } from 'json-rules-engine';
 import { alert } from 'src/database/schema';
-import { dbClient } from 'src/database/database.client';
 import { CustomFieldDto } from './dto/custom-field.dto';
 import { get } from 'radash';
+import { DatabaseService } from '../database/database.service';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AlertService {
 
-    constructor(@InjectQueue('alert') private readonly alertQueue: Queue) {
+    constructor(@InjectQueue('alert') private readonly alertQueue: Queue, private readonly databaseService: DatabaseService, private readonly redisService: RedisService) {
 
     }
 
     private async checkGlobalCustomField(alertDto: AlertDto) {
-        const globalCustomeFields = await dbClient.query.globalCustomField.findMany();
+        const globalCustomeFields = await this.databaseService.getClient().query.globalCustomField.findMany();
         this.checkCustomField(alertDto, globalCustomeFields);
         return true;
     }
@@ -45,7 +46,7 @@ export class AlertService {
         if (!await this.checkGlobalCustomField(alertDto)) {
             throw new HttpException("Global custom field is not valid", HttpStatus.BAD_REQUEST);
         }
-        const serviceRoutes = await dbClient.query.serviceRoute.findMany({ orderBy: (serviceRoute, { asc }) => [asc(serviceRoute.order)], });
+        const serviceRoutes = await this.databaseService.getClient().query.serviceRoute.findMany({ orderBy: (serviceRoute, { asc }) => [asc(serviceRoute.order)], });
 
         const engine = new Engine;
         serviceRoutes.forEach((serviceRoute) => {
@@ -72,7 +73,7 @@ export class AlertService {
             throw new HttpException("Global custom field is not valid", HttpStatus.BAD_REQUEST);
         }
 
-        const service = await dbClient.query.service.findFirst({ 
+        const service = await this.databaseService.getClient().query.service.findFirst({ 
             where: (service, { eq }) => eq(service.id, serviceId),
             with: {
                 customeFields: true,
@@ -87,7 +88,7 @@ export class AlertService {
             throw new HttpException("Service custom field is not valid", HttpStatus.BAD_REQUEST);
         }
 
-        const alertData = await dbClient.insert(alert)
+        const alertData = await this.databaseService.getClient().insert(alert)
         .values({
            content: alertDto.content,
            title: alertDto.title,

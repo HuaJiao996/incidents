@@ -43,7 +43,7 @@ export const alert = pgTable('alert', {
     title: varchar({ length: 500 }).notNull(),
     content: varchar({ length: 5000 }).notNull(),
     customFields: jsonb().default({}).notNull().$type<Record<string, unknown>>(),
-    type: alertType().default('trigger').notNull(),
+    type: alertType(),
     serviceId: uuid().references(() => service.id),
     incidentId: uuid().references(() => incident.id),
     createdAt: timestamp().defaultNow().notNull(),
@@ -67,7 +67,7 @@ export const incident = pgTable('incident', {
     id: uuid().defaultRandom().primaryKey(),
     title: varchar({ length: 500 }).notNull(),
     description: varchar({ length: 5000 }).notNull(),
-    incidentTypeId: uuid().references(() => IncidentType.id).notNull(),
+    incidentTypeId: uuid().references(() => incidentType.id).notNull(),
     status: incidentStatus().default('triggered'),
     detail: jsonb().default({}).notNull().$type<Record<string, unknown>>(),
     createdAt: timestamp().defaultNow().notNull(),
@@ -135,11 +135,13 @@ export const serviceRoute = pgTable('service_route', {
 
 export type ServiceRoute = typeof serviceRoute.$inferSelect
 
-export const IncidentType = pgTable('incident_type', {
+export const incidentType = pgTable('incident_type', {
     id: uuid().defaultRandom().primaryKey(),
     name: varchar({ length: 500 }).notNull(),
     serviceId: uuid().references(() => service.id).notNull(),
     createdAt: timestamp().defaultNow().notNull(),
+    condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(), // exp
+    order: integer().notNull(), // exp
     title: varchar({ length: 500 }).notNull(), // exp
     description: varchar({ length: 5000 }).notNull(), // exp
     updatedAt: timestamp().defaultNow().notNull(),
@@ -147,42 +149,45 @@ export const IncidentType = pgTable('incident_type', {
     createdby: uuid().references(() => user.id).notNull(), // created
 })
 
-export type IncidentType = typeof IncidentType.$inferSelect
+export type IncidentType = typeof incidentType.$inferSelect
 
-export const IncidentTypeBehavior = pgEnum('incident_type_behavior', ['trigger','acknowledge','resolve', 'assign', 'comment'])
-
-export const IncidentTypeCondition = pgTable('incident_type_condition', {
+export const incidentTypeStatusCondition = pgTable('incident_type_status_condition', {
     id: uuid().defaultRandom().primaryKey(),
-    incidentTypeId: uuid().references(() => IncidentType.id).notNull(),
+    incidentTypeId: uuid().references(() => incidentType.id).notNull(),
     condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(), // exp
-    targetBehavior: IncidentTypeBehavior().default('trigger'),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp().defaultNow().notNull(),
-    updatedby: uuid().references(() => user.id).notNull(), // updated 
+    status: incidentStatus().notNull(), 
+    order: integer().notNull(), // exp
 })
-
-export const IncidentTypeAction = pgTable('incident_type_action', {
-    id: uuid().defaultRandom().primaryKey(),
-    incidentTypeId: uuid().references(() => IncidentType.id).notNull(),
-    targetUrl: varchar({ length: 500 }).notNull(), // exp
-    headers: jsonb().default({}).notNull().$type<Record<string, string>>(), // exp
-    inupt: text().notNull(), // exp
-})
-
-export const serviceRelation = relations(service, ({ many }) => ({
-    customeFields: many(serviceCustomField),
-    incidentTypes: many(IncidentType), 
-}))
 
 export const serviceCustomField = pgTable('service_custome_field', {
     id: uuid().defaultRandom().primaryKey(),
     serviceId: uuid().references(() => service.id).notNull(),
     path: varchar({ length: 500 }).notNull(),
-        type: customeFieldType().notNull(),
-        required: boolean().default(false).notNull(),
-        enumValues: jsonb().default([]).notNull().$type<unknown[]>(),
-        createdAt: timestamp().defaultNow().notNull(),
-        updatedAt: timestamp().defaultNow().notNull(),
-        updatedby: uuid().references(() => user.id).notNull(), // updated
+    type: customeFieldType().notNull(),
+    required: boolean().default(false).notNull(),
+    enumValues: jsonb().default([]).notNull().$type<unknown[]>(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp().defaultNow().notNull(),
+    updatedby: uuid().references(() => user.id).notNull(), // updated
 })
+
+export const IncidentTypeRelation = relations(incidentType, ({ many, one }) => ({
+    statusConditions: many(incidentTypeStatusCondition),
+    service: one(service, {
+        fields: [incidentType.serviceId],
+        references: [service.id], 
+    })
+}))
+
+export const serviceRelation = relations(service, ({ many }) => ({
+    customeFields: many(serviceCustomField),
+    incidentTypes: many(incidentType), 
+}))
+
+export const serviceCustomFieldRelation = relations(serviceCustomField, ({ one }) => ({
+    service: one(service, {
+        fields: [serviceCustomField.serviceId],
+        references: [service.id],
+    })
+}))
 
