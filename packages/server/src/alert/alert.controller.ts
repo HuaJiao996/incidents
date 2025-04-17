@@ -1,7 +1,4 @@
-import { InjectQueue } from '@nestjs/bullmq';
 import { Body, Controller, Param, Post } from '@nestjs/common';
-import { Queue } from 'bullmq';
-import { service } from 'src/database/schema';
 import { AlertService } from './alert.service';
 import { AlertDto } from './dto/alert.dto';
 

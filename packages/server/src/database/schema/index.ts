@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const user = pgTable('user', {
     id: uuid().defaultRandom().primaryKey(),
@@ -29,9 +29,9 @@ export const globalCustomField = pgTable('global_custome_field', {
     type: customeFieldType().notNull(),
     required: boolean().default(false).notNull(),
     enumValues: jsonb().default([]).notNull().$type<unknown[]>(),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp().defaultNow().notNull(),
-    updatedby: uuid().references(() => user.id).notNull(), // updated
+    // createdAt: timestamp().defaultNow().notNull(),
+    // updatedAt: timestamp().defaultNow().notNull(),
+    // updatedby: uuid().references(() => user.id).notNull(), // updated
 })
 
 
@@ -129,8 +129,8 @@ export const serviceRoute = pgTable('service_route', {
     description: varchar({ length: 5000 }).notNull(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
-    createdby: uuid().references(() => user.id).notNull(), // created
-    updatedby: uuid().references(() => user.id).notNull(), // updated
+    // createdby: uuid().references(() => user.id).notNull(), // created
+    // updatedby: uuid().references(() => user.id).notNull(), // updated
 })
 
 export type ServiceRoute = typeof serviceRoute.$inferSelect
@@ -139,14 +139,14 @@ export const incidentType = pgTable('incident_type', {
     id: uuid().defaultRandom().primaryKey(),
     name: varchar({ length: 500 }).notNull(),
     serviceId: uuid().references(() => service.id).notNull(),
-    createdAt: timestamp().defaultNow().notNull(),
     condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(), // exp
     order: integer().notNull(), // exp
     title: varchar({ length: 500 }).notNull(), // exp
     description: varchar({ length: 5000 }).notNull(), // exp
-    updatedAt: timestamp().defaultNow().notNull(),
-    updatedby: uuid().references(() => user.id).notNull(), // updated
-    createdby: uuid().references(() => user.id).notNull(), // created
+    // createdAt: timestamp().defaultNow().notNull(),
+    // updatedAt: timestamp().defaultNow().notNull(),
+    // updatedby: uuid().references(() => user.id).notNull(), // updated
+    // createdby: uuid().references(() => user.id).notNull(), // created
 })
 
 export type IncidentType = typeof incidentType.$inferSelect
@@ -159,6 +159,13 @@ export const incidentTypeStatusCondition = pgTable('incident_type_status_conditi
     order: integer().notNull(), // exp
 })
 
+export const incidentTypeStatusConditionRelation = relations(incidentTypeStatusCondition, ({ one }) => ({
+    incidentType: one(incidentType, {
+        fields: [incidentTypeStatusCondition.incidentTypeId],
+        references: [incidentType.id],
+    })
+}))
+
 export const serviceCustomField = pgTable('service_custome_field', {
     id: uuid().defaultRandom().primaryKey(),
     serviceId: uuid().references(() => service.id).notNull(),
@@ -166,9 +173,9 @@ export const serviceCustomField = pgTable('service_custome_field', {
     type: customeFieldType().notNull(),
     required: boolean().default(false).notNull(),
     enumValues: jsonb().default([]).notNull().$type<unknown[]>(),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp().defaultNow().notNull(),
-    updatedby: uuid().references(() => user.id).notNull(), // updated
+    // createdAt: timestamp().defaultNow().notNull(),
+    // updatedAt: timestamp().defaultNow().notNull(),
+    // updatedby: uuid().references(() => user.id).notNull(), // updated
 })
 
 export const IncidentTypeRelation = relations(incidentType, ({ many, one }) => ({

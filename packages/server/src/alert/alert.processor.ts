@@ -1,8 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { IncidentService } from '../incident/incident.service';
-import { Engine, TopLevelCondition } from 'json-rules-engine';
-import { incidentType } from '../database/schema';
 import { Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 

@@ -6,13 +6,13 @@ export class AlertDto {
     @ApiProperty()
     @IsNotEmpty()
     title: string;
-    @ApiProperty()
-    @IsEmpty()
-    type: AlertType | undefined;
 
     @ApiProperty()
     @IsNotEmpty()
     content: string;
+
+    @ApiPropertyOptional({ enum: ['trigger', 'resolve']})
+    type: AlertType | undefined;
 
     @ApiPropertyOptional()
     customFields: Record<string, unknown> | undefined;

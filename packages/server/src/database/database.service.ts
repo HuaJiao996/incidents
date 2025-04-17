@@ -13,7 +13,7 @@ export class DatabaseService implements OnModuleInit {
     constructor(private configService: ConfigService) { }
 
     onModuleInit() {
-        this.db = drizzle(this.configService.get<string>('DATABASE_URL')!, { schema, logger: true });
+        this.db = drizzle(this.configService.get<string>('DATABASE_URL')!, { schema, logger: true, casing: 'snake_case'});
     }
 
     getClient() {

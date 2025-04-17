@@ -15,6 +15,20 @@
       "when": 1744781552372,
       "tag": "0001_parched_secret_warriors",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744855391185,
+      "tag": "0002_special_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1744856323896,
+      "tag": "0003_youthful_marrow",
+      "breakpoints": true
     }
   ]
 }
