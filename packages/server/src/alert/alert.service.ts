@@ -2,13 +2,14 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { AlertDto } from './dto/alert.dto';
-import { Engine, TopLevelCondition } from 'json-rules-engine';
-import { alert } from 'src/database/schema';
+import { TopLevelCondition } from 'json-rules-engine';
+import { alert } from '../database/schema';
 import { CustomFieldDto } from './dto/custom-field.dto';
 import { get, isNumber, isString } from 'radash';
 import { DatabaseService } from '../database/database.service';
 import { RedisService } from '../redis/redis.service';
 import { CustomFieldValidationException } from '../common/exceptions/custom-field-validation.exception';
+import { RuleEngine } from '../common/rule-engine/rule-engine';
 const baseValidator = (required: boolean, fieldValue: unknown, typeCheck: (value: unknown) => boolean, typeName: string) => {
     if (fieldValue === undefined || fieldValue === null) {
         return required 
@@ -128,17 +129,11 @@ export class AlertService {
         }
         const serviceRoutes = await this.databaseService.getClient().query.serviceRoute.findMany({ orderBy: (serviceRoute, { asc }) => [asc(serviceRoute.order)], });
 
-        const engine = new Engine;
+        const engine = new RuleEngine;
         serviceRoutes.forEach((serviceRoute) => {
-            engine.addRule({
-                conditions: serviceRoute.condition as TopLevelCondition,
-                event: { type: 'matched', params: { serviceId: serviceRoute.serviceId } },
-                priority: serviceRoute.order,
-            })
+            engine.appendRule(serviceRoute.condition as TopLevelCondition,{ serviceId: serviceRoute.serviceId }, serviceRoute.order)
         })
-        engine.on('matched', () => {
-            engine.stop();
-        })
+
         const serviceId = await engine.run(alertDto).then(({ events }) => events[0]?.params?.serviceId as (string | undefined));
         return this.reciveWithServiceId(alertDto, serviceId, false);
     }

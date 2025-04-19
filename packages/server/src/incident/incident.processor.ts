@@ -1,0 +1,20 @@
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Job } from 'bullmq';
+import { IncidentService } from './incident.service';
+import { Logger } from '@nestjs/common';
+import { DatabaseService } from '../database/database.service';
+import { RuleEngine } from 'src/common/rule-engine/rule-engine';
+import { TopLevelCondition } from 'json-rules-engine';
+import { tryit } from 'radash';
+
+@Processor('incident')
+export class IncidentProcessor extends WorkerHost {
+    private readonly logger = new Logger(IncidentProcessor.name);
+    constructor(private readonly incidentService: IncidentService, private readonly databaseService: DatabaseService) {
+        super();
+    }
+    async process(job: Job<string>, token?: string) {
+        this.logger.log(job.data);
+    }
+
+}
