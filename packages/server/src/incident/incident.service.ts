@@ -10,7 +10,7 @@ import { Queue } from 'bullmq';
 export class IncidentService {
     private readonly logger = new Logger(IncidentService.name);
 
-    constructor(@InjectQueue('incident') private readonly alertQueue: Queue, private readonly databaseService: DatabaseService) {}
+    constructor(@InjectQueue('incident') private readonly incidentQueue: Queue, private readonly databaseService: DatabaseService) {}
 
     async createIncident(alertData: typeof alert.$inferSelect, incidentTypeData: typeof incidentType.$inferSelect) {
         this.logger.log(`创建事件: alertId=${alertData.id}, incidentTypeId=${incidentTypeData.id}, serviceId=${incidentTypeData.serviceId}`);
