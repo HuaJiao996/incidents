@@ -57,7 +57,6 @@ export class AlertProcessor extends WorkerHost {
                 })
             })
            
-
             status = await statusChecker.run(alert).then(({ events }) => events[0]?.params?.status as "trigger" | "resolve");
         }
 

@@ -15,19 +15,19 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const now = Date.now();
     this.logger.log(
-      `请求开始 - ${method} ${url} - IP: ${ip} - UserAgent: ${userAgent}`,
+      `Request Start - ${method} ${url} - IP: ${ip} - UserAgent: ${userAgent}`,
     );
 
     if (Object.keys(body as {}).length > 0) {
-      this.logger.debug(`请求体: ${JSON.stringify(body)}`);
+      this.logger.debug(`Request Body: ${JSON.stringify(body)}`);
     }
 
     if (Object.keys(params as {}).length > 0) {
-      this.logger.debug(`路径参数: ${JSON.stringify(params)}`);
+      this.logger.debug(`Url Params: ${JSON.stringify(params)}`);
     }
 
     if (Object.keys(query as {}).length > 0) {
-      this.logger.debug(`查询参数: ${JSON.stringify(query)}`);
+      this.logger.debug(`Query: ${JSON.stringify(query)}`);
     }
 
     return next.handle().pipe(
@@ -35,14 +35,14 @@ export class LoggingInterceptor implements NestInterceptor {
         next: (data) => {
           const responseTime = Date.now() - now;
           this.logger.log(
-            `请求结束 - ${method} ${url} - ${responseTime}ms`,
+            `Request End - ${method} ${url} - ${responseTime}ms`,
           );
-          this.logger.debug(`响应数据: ${JSON.stringify(data)}`);
+          this.logger.debug(`Response: ${JSON.stringify(data)}`);
         },
         error: (error) => {
           const responseTime = Date.now() - now;
           this.logger.error(
-            `请求失败 - ${method} ${url} - ${responseTime}ms - ${error.message}`,
+            `Request Failed - ${method} ${url} - ${responseTime}ms - ${error.message}`,
           );
         },
       }),

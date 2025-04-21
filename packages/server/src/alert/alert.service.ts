@@ -5,69 +5,12 @@ import { AlertDto } from './dto/alert.dto';
 import { TopLevelCondition } from 'json-rules-engine';
 import { alert } from '../database/schema';
 import { CustomFieldDto } from './dto/custom-field.dto';
-import { get, isNumber, isString } from 'radash';
+import { get } from 'radash';
 import { DatabaseService } from '../database/database.service';
 import { RedisService } from '../redis/redis.service';
 import { CustomFieldValidationException } from '../common/exceptions/custom-field-validation.exception';
 import { RuleEngine } from '../common/rule-engine/rule-engine';
-const baseValidator = (required: boolean, fieldValue: unknown, typeCheck: (value: unknown) => boolean, typeName: string) => {
-    if (fieldValue === undefined || fieldValue === null) {
-        return required 
-            ? { valid: false, reason: 'Required field is missing' }
-            
-            : { valid: true };
-    }
-    return typeCheck(fieldValue)
-        ? { valid: true }
-        : { valid: false, reason: `Value "${JSON.stringify(fieldValue)}" is not of type ${typeName}` };
-}
-// 简化后的自定义字段验证器
-const customFieldValidators = {
-    
-    string: (required: boolean, fieldValue?: unknown) => 
-        baseValidator(required, fieldValue, isString, 'string'),
-    
-    number: (required: boolean, fieldValue?: unknown) => 
-        baseValidator(required, fieldValue, isNumber, 'number'),
-    
-    boolean: (required: boolean, fieldValue?: unknown) => 
-        baseValidator(required, fieldValue, 
-            value => typeof value === 'boolean', 'boolean'),
-    
-    array: (required: boolean, fieldValue?: unknown) => {
-        // 先检查是否为数组
-        const arrayCheck = baseValidator(
-            required, fieldValue, Array.isArray, 'array');
-        
-        if (!arrayCheck.valid) return arrayCheck;
-        
-        // 如果是必填，检查数组是否为空
-        if (required && (fieldValue as unknown[]).length === 0) {
-            return { valid: false, reason: 'Array cannot be empty' };
-        }
-        
-        return { valid: true };
-    },
-    
-    enum: (required: boolean, fieldValue?: unknown, enumValues?: unknown[]) => {
-        // 先检查字段值是否存在
-        if (fieldValue === undefined || fieldValue === null) {
-            return required 
-                ? { valid: false, reason: 'Required field is missing' } 
-                : { valid: true };
-        }
-        
-        // 检查枚举值列表是否有效
-        if (!Array.isArray(enumValues) || enumValues.length === 0) {
-            return { valid: false, reason: 'Invalid enum values list' };
-        }
-        
-        // 检查值是否在枚举列表中
-        return enumValues.includes(fieldValue)
-            ? { valid: true }
-            : { valid: false, reason: `Value "${fieldValue}" is not in allowed enum values [${enumValues.join(', ')}]` };
-    }
-};
+import { customFieldValidators } from '../common/validators/custom-field.validator';
 
 @Injectable()
 export class AlertService {
@@ -133,7 +76,6 @@ export class AlertService {
         serviceRoutes.forEach((serviceRoute) => {
             engine.appendRule(serviceRoute.condition as TopLevelCondition,{ serviceId: serviceRoute.serviceId }, serviceRoute.order)
         })
-
         const serviceId = await engine.run(alertDto).then(({ events }) => events[0]?.params?.serviceId as (string | undefined));
         return this.reciveWithServiceId(alertDto, serviceId, false);
     }
