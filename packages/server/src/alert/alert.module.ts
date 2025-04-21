@@ -8,7 +8,7 @@ import { IncidentModule } from '@/incident/incident.module';
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: 'alert',
+      name: 'alertQueue',
       defaultJobOptions: {
         removeOnComplete: true, // 或设置为数字，表示保留的已完成任务数量
         removeOnFail: false, // 失败的任务不自动删除

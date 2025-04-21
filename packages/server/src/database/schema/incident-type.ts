@@ -1,12 +1,12 @@
 import { relations } from 'drizzle-orm';
 import { integer, jsonb, pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
-import { incidentTypeStatusCondition, service } from '.';
+import { incidentTypeStatusConditionTable, serviceTable } from '.';
 
-export const incidentType = pgTable('incident_type', {
+export const incidentTypeTable = pgTable('incident_type', {
   id: uuid().defaultRandom().primaryKey(),
   name: varchar({ length: 500 }).notNull(),
   serviceId: uuid()
-    .references(() => service.id)
+    .references(() => serviceTable.id)
     .notNull(),
   condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(), // exp
   order: integer().notNull(), // exp
@@ -18,25 +18,25 @@ export const incidentType = pgTable('incident_type', {
   // createdBy: uuid().references(() => user.id).notNull(), // created
 });
 
-export const incidentTypeGroup = pgTable('incident_type_group', {
+export const incidentTypeGroupTable = pgTable('incident_type_group', {
   id: uuid().defaultRandom().primaryKey(),
   incidentTypeId: uuid()
-    .references(() => incidentType.id)
+    .references(() => incidentTypeTable.id)
     .notNull(),
   groupName: varchar({ length: 500 }).notNull(), // exp
   condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(), // exp
   order: integer().notNull(), // exp
 });
 
-export const IncidentTypeRelations = relations(
-  incidentType,
+export const IncidentTypeTableRelations = relations(
+  incidentTypeTable,
   ({ many, one }) => ({
-    statusConditions: many(incidentTypeStatusCondition),
-    service: one(service, {
-      fields: [incidentType.serviceId],
-      references: [service.id],
+    statusConditions: many(incidentTypeStatusConditionTable),
+    service: one(serviceTable, {
+      fields: [incidentTypeTable.serviceId],
+      references: [serviceTable.id],
     }),
   }),
 );
 
-export type IncidentType = typeof incidentType.$inferSelect;
+export type IncidentType = typeof incidentTypeTable.$inferSelect;

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/database/database.service';
-import { alert, incident, incidentType } from '@/database/schema';
+import { alertTable, incidentTable, incidentTypeTable } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -10,13 +10,13 @@ export class IncidentService {
   private readonly logger = new Logger(IncidentService.name);
 
   constructor(
-    @InjectQueue('incident') private readonly incidentQueue: Queue,
+    @InjectQueue('incidentQueue') private readonly incidentQueue: Queue,
     private readonly databaseService: DatabaseService,
   ) {}
 
   async createIncident(
-    alertData: typeof alert.$inferSelect,
-    incidentTypeData: typeof incidentType.$inferSelect,
+    alertData: typeof alertTable.$inferSelect,
+    incidentTypeData: typeof incidentTypeTable.$inferSelect,
   ) {
     this.logger.log(
       `创建事件: alertId=${alertData.id}, incidentTypeId=${incidentTypeData.id}, serviceId=${incidentTypeData.serviceId}`,
@@ -53,9 +53,9 @@ export class IncidentService {
 
     await this.databaseService
       .getClient()
-      .update(incident)
+      .update(incidentTable)
       .set(updateData)
-      .where(eq(incident.id, incidentId));
+      .where(eq(incidentTable.id, incidentId));
 
     this.logger.log(
       `事件更新成功: incidentId=${incidentId}, status=${resolved ? 'resolved' : 'open'}`,
@@ -65,7 +65,7 @@ export class IncidentService {
   }
 
   async findOpenIncidentByType(incidentTypeId: string) {
-    return this.databaseService.getClient().query.incident.findFirst({
+    return this.databaseService.getClient().query.incidentTable.findFirst({
       where: (incident, { eq, and }) =>
         and(
           eq(incident.incidentTypeId, incidentTypeId),

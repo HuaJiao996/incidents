@@ -1,14 +1,14 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { incidentType, serviceCustomField } from '.';
+import { incidentTypeTable, serviceCustomFieldTable } from '.';
 
-export const service = pgTable('service', {
+export const serviceTable = pgTable('service', {
   id: uuid().defaultRandom().primaryKey(),
   name: varchar({ length: 500 }).notNull(),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
 });
-export const serviceRelations = relations(service, ({ many }) => ({
-  customFields: many(serviceCustomField),
-  incidentTypes: many(incidentType),
+export const serviceTableRelations = relations(serviceTable, ({ many }) => ({
+  customFields: many(serviceCustomFieldTable),
+  incidentTypes: many(incidentTypeTable),
 }));

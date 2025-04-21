@@ -1,12 +1,12 @@
 import { pgTable, uuid } from 'drizzle-orm/pg-core';
-import { team, user } from '.';
+import { teamTable, userTable } from '.';
 
-export const teamMember = pgTable('team_member', {
+export const teamMemberTable = pgTable('team_member', {
   id: uuid().defaultRandom().primaryKey(),
   userId: uuid()
-    .references(() => user.id)
+    .references(() => userTable.id)
     .notNull(),
   teamId: uuid()
-    .references(() => team.id)
+    .references(() => teamTable.id)
     .notNull(),
 });

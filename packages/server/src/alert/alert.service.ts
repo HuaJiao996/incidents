@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { AlertDto } from './dto/alert.dto';
 import { TopLevelCondition } from 'json-rules-engine';
-import { alert } from '@/database/schema';
+import { alertTable } from '@/database/schema';
 import { CustomFieldDto } from './dto/custom-field.dto';
 import { get } from 'radash';
 import { DatabaseService } from '@/database/database.service';
@@ -17,7 +17,7 @@ export class AlertService {
   private readonly logger = new Logger(AlertService.name);
 
   constructor(
-    @InjectQueue('alert') private readonly alertQueue: Queue,
+    @InjectQueue('alertQueue') private readonly alertQueue: Queue,
     private readonly databaseService: DatabaseService,
     private readonly redisService: RedisService,
   ) {}
@@ -25,7 +25,7 @@ export class AlertService {
   private async checkGlobalCustomField(alertDto: AlertDto) {
     const globalCustomFields = await this.databaseService
       .getClient()
-      .query.globalCustomField.findMany();
+      .query.globalCustomFieldTable.findMany();
     return this.checkCustomField(alertDto, globalCustomFields);
   }
 
@@ -79,7 +79,7 @@ export class AlertService {
     }
     const serviceRoutes = await this.databaseService
       .getClient()
-      .query.serviceRoute.findMany({
+      .query.serviceRouteTable.findMany({
         orderBy: (serviceRoute, { asc }) => [asc(serviceRoute.order)],
       });
 
@@ -121,7 +121,7 @@ export class AlertService {
 
     const service = await this.databaseService
       .getClient()
-      .query.service.findFirst({
+      .query.serviceTable.findFirst({
         where: (service, { eq }) => eq(service.id, serviceId),
         with: {
           customFields: true,
@@ -145,7 +145,7 @@ export class AlertService {
 
     const alertData = await this.databaseService
       .getClient()
-      .insert(alert)
+      .insert(alertTable)
       .values({
         content: alertDto.content,
         title: alertDto.title,
@@ -153,7 +153,7 @@ export class AlertService {
         serviceId: serviceId,
         type: alertDto.type,
       })
-      .returning({ id: alert.id });
+      .returning({ id: alertTable.id });
 
     const alertId = alertData[0].id;
 

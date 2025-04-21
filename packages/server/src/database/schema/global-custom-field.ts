@@ -17,7 +17,7 @@ export const customFieldType = pgEnum('custom_field_type', [
 
 export type CustomFieldType = (typeof customFieldType.enumValues)[number];
 
-export const globalCustomField = pgTable('global_custom_field', {
+export const globalCustomFieldTable = pgTable('global_custom_field', {
   id: uuid().defaultRandom().primaryKey(),
   path: varchar({ length: 500 }).notNull(),
   type: customFieldType().notNull(),

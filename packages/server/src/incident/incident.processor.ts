@@ -4,7 +4,7 @@ import { IncidentService } from './incident.service';
 import { Logger } from '@nestjs/common';
 import { DatabaseService } from '@/database/database.service';
 
-@Processor('incident')
+@Processor('incidentQueue')
 export class IncidentProcessor extends WorkerHost {
   private readonly logger = new Logger(IncidentProcessor.name);
   constructor(

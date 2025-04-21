@@ -6,12 +6,12 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { service } from '.';
+import { serviceTable } from '.';
 
-export const serviceRoute = pgTable('service_route', {
+export const serviceRouteTable = pgTable('service_route', {
   id: uuid().defaultRandom().primaryKey(),
   serviceId: uuid()
-    .references(() => service.id)
+    .references(() => serviceTable.id)
     .notNull(),
   order: integer().notNull(),
   condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(),
@@ -22,4 +22,4 @@ export const serviceRoute = pgTable('service_route', {
   // updatedBy: uuid().references(() => user.id).notNull(), // updated
 });
 
-export type ServiceRoute = typeof serviceRoute.$inferSelect;
+export type ServiceRoute = typeof serviceRouteTable.$inferSelect;

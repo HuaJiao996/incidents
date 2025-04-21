@@ -50,6 +50,27 @@
       "when": 1745225633378,
       "tag": "0006_lazy_leper_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1745229953404,
+      "tag": "0007_fuzzy_pixie",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1745230196016,
+      "tag": "0008_perfect_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1745230252258,
+      "tag": "0009_first_exodus",
+      "breakpoints": true
     }
   ]
 }

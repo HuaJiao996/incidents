@@ -6,7 +6,7 @@ import { IncidentProcessor } from './incident.processor';
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: 'incident',
+      name: 'incidentQueue',
       defaultJobOptions: {
         removeOnComplete: true, // 或设置为数字，表示保留的已完成任务数量
         removeOnFail: false, // 失败的任务不自动删除

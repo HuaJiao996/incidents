@@ -6,10 +6,8 @@ import { DatabaseService } from '@/database/database.service';
 import { RuleEngine } from '@/common/rule-engine/rule-engine';
 import { TopLevelCondition } from 'json-rules-engine';
 import { tryit } from 'radash';
-import { and } from 'drizzle-orm';
-import { incidentType, incidentTypeGroup } from '@/database/schema';
 
-@Processor('alert')
+@Processor('alertQueue')
 export class AlertProcessor extends WorkerHost {
   private readonly logger = new Logger(AlertProcessor.name);
   constructor(
@@ -20,7 +18,7 @@ export class AlertProcessor extends WorkerHost {
   }
   async process(job: Job<string>) {
     this.logger.log(job.data);
-    const alert = await this.databaseService.getClient().query.alert.findFirst({
+    const alert = await this.databaseService.getClient().query.alertTable.findFirst({
       where: (alert, { eq }) => eq(alert.id, job.data),
       with: {
         service: {
@@ -67,7 +65,7 @@ export class AlertProcessor extends WorkerHost {
 
     const groups = await this.databaseService
       .getClient()
-      .query.incidentTypeGroup.findMany({
+      .query.incidentTypeGroupTable.findMany({
         where: (incidentTypeGroup, { eq }) =>
           eq(incidentTypeGroup.incidentTypeId, matchedIncidentType.id),
       });
@@ -96,11 +94,11 @@ export class AlertProcessor extends WorkerHost {
     if (!status) {
       const statusConditions = await this.databaseService
         .getClient()
-        .query.incidentTypeStatusCondition.findMany({
-          where: (incidentTypeStatusCondition, { eq }) =>
+        .query.incidentTypeStatusConditionTable.findMany({
+          where: (incidentTypeStatusCondition, { eq, and }) =>
             and(
-              eq(incidentTypeStatusCondition.incidentTypeId, incidentType.id),
-              eq(incidentTypeStatusCondition.groupId, incidentTypeGroup.id),
+              eq(incidentTypeStatusCondition.incidentTypeId, matchedIncidentType.id),
+              eq(incidentTypeStatusCondition.groupId, group.id),
             ),
         });
 
