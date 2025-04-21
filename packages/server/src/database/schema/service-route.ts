@@ -18,8 +18,8 @@ export const serviceRoute = pgTable('service_route', {
   description: varchar({ length: 5000 }).notNull(),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
-  // createdby: uuid().references(() => user.id).notNull(), // created
-  // updatedby: uuid().references(() => user.id).notNull(), // updated
+  // createdBy: uuid().references(() => user.id).notNull(), // created
+  // updatedBy: uuid().references(() => user.id).notNull(), // updated
 });
 
 export type ServiceRoute = typeof serviceRoute.$inferSelect;

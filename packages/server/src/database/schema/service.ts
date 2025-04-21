@@ -9,6 +9,6 @@ export const service = pgTable('service', {
   updatedAt: timestamp().defaultNow().notNull(),
 });
 export const serviceRelations = relations(service, ({ many }) => ({
-  customeFields: many(serviceCustomField),
+  customFields: many(serviceCustomField),
   incidentTypes: many(incidentType),
 }));

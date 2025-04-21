@@ -1,8 +1,8 @@
-import { CustomeFieldType } from '@/database/schema';
+import { CustomFieldType } from '@/database/schema';
 
 export class CustomFieldDto {
   path: string;
-  type: CustomeFieldType;
+  type: CustomFieldType;
   required: boolean;
   enumValues: unknown[];
 }

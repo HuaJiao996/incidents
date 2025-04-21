@@ -105,11 +105,11 @@ export class AlertProcessor extends WorkerHost {
         });
 
       const statusChecker = new RuleEngine();
-      statusConditions.forEach((statusCondion) => {
+      statusConditions.forEach((statusCondition) => {
         statusChecker.addRule({
-          conditions: statusCondion.condition as TopLevelCondition,
-          event: { type: 'matched', params: { status: statusCondion.status } },
-          priority: statusCondion.order,
+          conditions: statusCondition.condition as TopLevelCondition,
+          event: { type: 'matched', params: { status: statusCondition.status } },
+          priority: statusCondition.order,
         });
       });
 

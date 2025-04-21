@@ -23,10 +23,10 @@ export class AlertService {
   ) {}
 
   private async checkGlobalCustomField(alertDto: AlertDto) {
-    const globalCustomeFields = await this.databaseService
+    const globalCustomFields = await this.databaseService
       .getClient()
       .query.globalCustomField.findMany();
-    return this.checkCustomField(alertDto, globalCustomeFields);
+    return this.checkCustomField(alertDto, globalCustomFields);
   }
 
   private checkCustomField(alertDto: AlertDto, customFields: CustomFieldDto[]) {
@@ -69,7 +69,7 @@ export class AlertService {
     return { valid: true, errors: [] };
   }
 
-  async recive(alertDto: AlertDto) {
+  async receive(alertDto: AlertDto) {
     const globalFieldCheck = await this.checkGlobalCustomField(alertDto);
     if (!globalFieldCheck.valid) {
       throw new CustomFieldValidationException(
@@ -94,10 +94,10 @@ export class AlertService {
     const serviceId = await engine
       .run(alertDto)
       .then(({ events }) => events[0]?.params?.serviceId as string | undefined);
-    return this.reciveWithServiceId(alertDto, serviceId, false);
+    return this.receiveWithServiceId(alertDto, serviceId, false);
   }
 
-  async reciveWithServiceId(
+  async receiveWithServiceId(
     alertDto: AlertDto,
     serviceId?: string,
     checkGlobalCustomField: boolean = true,
@@ -124,7 +124,7 @@ export class AlertService {
       .query.service.findFirst({
         where: (service, { eq }) => eq(service.id, serviceId),
         with: {
-          customeFields: true,
+          customFields: true,
         },
       });
 
@@ -134,7 +134,7 @@ export class AlertService {
 
     const serviceFieldCheck = this.checkCustomField(
       alertDto,
-      service.customeFields,
+      service.customFields,
     );
     if (!serviceFieldCheck.valid) {
       throw new CustomFieldValidationException(

@@ -34,7 +34,7 @@ export const incident = pgTable('incident', {
   resolvedById: uuid()
     .references(() => user.id)
     .notNull(),
-  resilvedReason: varchar({ length: 500 }).notNull(),
+  resolvedReason: varchar({ length: 500 }).notNull(),
 });
 
 export const childIncident = pgTable('child_incident', {

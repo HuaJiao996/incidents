@@ -7,15 +7,15 @@ export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 
   @Post()
-  async recive(@Body() alertDto: AlertDto) {
-    return this.alertService.recive(alertDto);
+  async receive(@Body() alertDto: AlertDto) {
+    return this.alertService.receive(alertDto);
   }
 
   @Post(':serviceId')
-  async reciveWithServiceId(
+  async receiveWithServiceId(
     @Param('serviceId') serviceId: string,
     @Body() alertDto: AlertDto,
   ) {
-    return this.alertService.reciveWithServiceId(alertDto, serviceId);
+    return this.alertService.receiveWithServiceId(alertDto, serviceId);
   }
 }

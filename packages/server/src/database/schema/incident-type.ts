@@ -14,8 +14,8 @@ export const incidentType = pgTable('incident_type', {
   description: varchar({ length: 5000 }).notNull(), // exp
   // createdAt: timestamp().defaultNow().notNull(),
   // updatedAt: timestamp().defaultNow().notNull(),
-  // updatedby: uuid().references(() => user.id).notNull(), // updated
-  // createdby: uuid().references(() => user.id).notNull(), // created
+  // updatedBy: uuid().references(() => user.id).notNull(), // updated
+  // createdBy: uuid().references(() => user.id).notNull(), // created
 });
 
 export const incidentTypeGroup = pgTable('incident_type_group', {

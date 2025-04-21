@@ -1,19 +1,19 @@
 import { relations } from 'drizzle-orm';
 import { boolean, jsonb, pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
-import { customeFieldType, service } from '.';
+import { customFieldType, service } from '.';
 
-export const serviceCustomField = pgTable('service_custome_field', {
+export const serviceCustomField = pgTable('service_custom_field', {
   id: uuid().defaultRandom().primaryKey(),
   serviceId: uuid()
     .references(() => service.id)
     .notNull(),
   path: varchar({ length: 500 }).notNull(),
-  type: customeFieldType().notNull(),
+  type: customFieldType().notNull(),
   required: boolean().default(false).notNull(),
   enumValues: jsonb().default([]).notNull().$type<unknown[]>(),
   // createdAt: timestamp().defaultNow().notNull(),
   // updatedAt: timestamp().defaultNow().notNull(),
-  // updatedby: uuid().references(() => user.id).notNull(), // updated
+  // updatedBy: uuid().references(() => user.id).notNull(), // updated
 });
 
 export const serviceCustomFieldRelations = relations(

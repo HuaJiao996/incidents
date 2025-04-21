@@ -15,14 +15,14 @@ export class RuleEngine extends Engine {
 
   appendRule(
     conditions: TopLevelCondition,
-    matchedResule: Record<string, any> = {},
+    matchedResult: Record<string, any> = {},
     priority?: number,
     type: string = RuleEngine.Matched,
   ): this {
     super.addRule({
       conditions: conditions,
       event: {
-        params: matchedResule,
+        params: matchedResult,
         type,
       },
       priority: priority,
