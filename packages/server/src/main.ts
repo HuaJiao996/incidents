@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -12,13 +15,13 @@ async function bootstrap() {
     new FastifyAdapter(),
     {
       logger: ['log', 'error', 'warn', 'debug', 'verbose'],
-    }
+    },
   );
   app.useGlobalPipes(new ValidationPipe());
-  
+
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
-  
+
   app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('API')
@@ -28,4 +31,4 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+bootstrap().catch(console.error);

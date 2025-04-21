@@ -4,7 +4,6 @@ import { AlertDto } from './dto/alert.dto';
 
 @Controller('alert')
 export class AlertController {
-
   constructor(private readonly alertService: AlertService) {}
 
   @Post()
@@ -13,7 +12,10 @@ export class AlertController {
   }
 
   @Post(':serviceId')
-  async reciveWithServiceId(@Param('serviceId') serviceId: string, @Body() alertDto: AlertDto) {
+  async reciveWithServiceId(
+    @Param('serviceId') serviceId: string,
+    @Body() alertDto: AlertDto,
+  ) {
     return this.alertService.reciveWithServiceId(alertDto, serviceId);
   }
 }

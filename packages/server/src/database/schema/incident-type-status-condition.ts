@@ -1,19 +1,27 @@
-import { pgTable, uuid, integer, jsonb } from "drizzle-orm/pg-core";
-import { incidentStatus, incidentType } from ".";
-import { relations } from "drizzle-orm";
+import { pgTable, uuid, integer, jsonb } from 'drizzle-orm/pg-core';
+import { incidentStatus, incidentType, incidentTypeGroup } from '.';
+import { relations } from 'drizzle-orm';
 
-
-export const incidentTypeStatusCondition = pgTable('incident_type_status_condition', {
+export const incidentTypeStatusCondition = pgTable(
+  'incident_type_status_condition',
+  {
     id: uuid().defaultRandom().primaryKey(),
-    incidentTypeId: uuid().references(() => incidentType.id).notNull(),
+    incidentTypeId: uuid()
+      .references(() => incidentType.id)
+      .notNull(),
     condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(), // exp
-    status: incidentStatus().notNull(), 
+    status: incidentStatus().notNull(),
     order: integer().notNull(), // exp
-})
+    groupId: uuid().references(() => incidentTypeGroup.id), // exp
+  },
+);
 
-export const incidentTypeStatusConditionRelations = relations(incidentTypeStatusCondition, ({ one }) => ({
+export const incidentTypeStatusConditionRelations = relations(
+  incidentTypeStatusCondition,
+  ({ one }) => ({
     incidentType: one(incidentType, {
-        fields: [incidentTypeStatusCondition.incidentTypeId],
-        references: [incidentType.id],
-    })
-}))
+      fields: [incidentTypeStatusCondition.incidentTypeId],
+      references: [incidentType.id],
+    }),
+  }),
+);

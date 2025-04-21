@@ -1,32 +1,32 @@
-import { Engine, EngineResult, RunOptions, TopLevelCondition } from "json-rules-engine";
-import { tryit } from "radash";
-
+import { Engine, TopLevelCondition } from 'json-rules-engine';
 
 export class RuleEngine extends Engine {
+  public static Matched = 'matched';
 
-    public static Matched = 'matched';
+  constructor(stopWhenMatchedFirst: boolean = true) {
+    super();
 
-    constructor(stopWhenMatchedFirst: boolean = true) {
-        super();
-
-        if (stopWhenMatchedFirst) {
-            this.on(RuleEngine.Matched, () => {
-                this.stop();
-            })
-        }
-        
+    if (stopWhenMatchedFirst) {
+      this.on(RuleEngine.Matched, () => {
+        this.stop();
+      });
     }
+  }
 
-    appendRule(conditions: TopLevelCondition, matchedResule: Record<string, any> = {} ,  priority?: number, type: string = RuleEngine.Matched ): this {
-        super.addRule({
-            conditions: conditions,
-            event: {
-                params: matchedResule,
-                type,
-            },
-            priority: priority,
-        });
-        return this;
-    }
-
+  appendRule(
+    conditions: TopLevelCondition,
+    matchedResule: Record<string, any> = {},
+    priority?: number,
+    type: string = RuleEngine.Matched,
+  ): this {
+    super.addRule({
+      conditions: conditions,
+      event: {
+        params: matchedResule,
+        type,
+      },
+      priority: priority,
+    });
+    return this;
+  }
 }
