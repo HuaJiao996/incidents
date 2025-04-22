@@ -6,6 +6,7 @@ import { DatabaseService } from '@/database/database.service';
 import { RuleEngine } from '@/common/rule-engine/rule-engine';
 import { TopLevelCondition } from 'json-rules-engine';
 import { tryit } from 'radash';
+import { Alert, AlertType, IncidentType } from '@/database/schema';
 
 @Processor('alertQueue')
 export class AlertProcessor extends WorkerHost {
@@ -16,10 +17,42 @@ export class AlertProcessor extends WorkerHost {
   ) {
     super();
   }
+
   async process(job: Job<string>) {
     this.logger.log(job.data);
-    const alert = await this.databaseService.getClient().query.alertTable.findFirst({
-      where: (alert, { eq }) => eq(alert.id, job.data),
+    
+    // 获取告警数据
+    const alert = await this.fetchAlert(job.data);
+    if (!alert?.service) {
+      throw new Error(`Alert not found ${job.data}`);
+    }
+
+    // 匹配事件类型
+    const matchedIncidentType = await this.matchIncidentType(alert);
+    if (!matchedIncidentType) {
+      return;
+    }
+
+    // 匹配分组
+    const group = await this.matchGroup(alert, matchedIncidentType.id);
+    if (!group) {
+      return;
+    }
+
+    // 确定状态
+    const status = await this.determineStatus(alert, matchedIncidentType.id, group.id);
+    this.logger.debug(status);
+
+    // 处理事件
+    await this.handleIncident(alert, matchedIncidentType, group.id, status);
+
+    this.logger.log(`Alert processing completed: ${job.data}`);
+    return { success: true };
+  }
+
+  private async fetchAlert(alertId: string) {
+    return this.databaseService.getClient().query.alertTable.findFirst({
+      where: (alert, { eq }) => eq(alert.id, alertId),
       with: {
         service: {
           with: {
@@ -28,12 +61,13 @@ export class AlertProcessor extends WorkerHost {
         },
       },
     });
-    if (!alert?.service) {
-      throw new Error('Alert not found');
-    }
+  }
 
+  
+  
+  private async matchIncidentType(alert: Exclude<Awaited<ReturnType<typeof this.fetchAlert>>, undefined>) {
     const incidentTypeChecker = new RuleEngine();
-    alert.service.incidentTypes.forEach((incidentType) => {
+    alert.service!.incidentTypes.forEach((incidentType) => {
       incidentTypeChecker.appendRule(
         incidentType.condition,
         { incidentType },
@@ -41,7 +75,7 @@ export class AlertProcessor extends WorkerHost {
       );
     });
 
-    const [error, matchedIncidentType] = await tryit(async () =>
+    const [error, matchedIncidentType] = await tryit(() =>
       incidentTypeChecker
         .run(alert)
         .then(
@@ -52,22 +86,28 @@ export class AlertProcessor extends WorkerHost {
             >['incidentTypes'][number],
         ),
     )();
+    
     if (error) {
       this.logger.error(error);
-      return; // TODO: handle error
+      return null; // 处理错误
     }
+    
     this.logger.debug(matchedIncidentType);
 
     if (!matchedIncidentType) {
       this.logger.error('没有匹配的 Incident Type');
-      return; // TODO: handle error
+      return null; // 处理错误
     }
+    
+    return matchedIncidentType;
+  }
 
+  private async matchGroup(alert: Record<string, unknown>, incidentTypeId: string) {
     const groups = await this.databaseService
       .getClient()
       .query.incidentTypeGroupTable.findMany({
         where: (incidentTypeGroup, { eq }) =>
-          eq(incidentTypeGroup.incidentTypeId, matchedIncidentType.id),
+          eq(incidentTypeGroup.incidentTypeId, incidentTypeId),
       });
 
     const groupChecker = new RuleEngine();
@@ -86,10 +126,14 @@ export class AlertProcessor extends WorkerHost {
       );
 
     if (!group) {
-      this.logger.error('没有匹配的 Group');
-      return; // TODO: handle error
+      this.logger.error('No matching group found');
+      return null; // 处理错误
     }
+    
+    return group;
+  }
 
+  private async determineStatus(alert: { type: AlertType | null }, incidentTypeId: string, groupId: string) {
     let status = alert.type;
     if (!status) {
       const statusConditions = await this.databaseService
@@ -97,14 +141,18 @@ export class AlertProcessor extends WorkerHost {
         .query.incidentTypeStatusConditionTable.findMany({
           where: (incidentTypeStatusCondition, { eq, and }) =>
             and(
-              eq(incidentTypeStatusCondition.incidentTypeId, matchedIncidentType.id),
-              eq(incidentTypeStatusCondition.groupId, group.id),
+              eq(incidentTypeStatusCondition.incidentTypeId, incidentTypeId),
+              eq(incidentTypeStatusCondition.groupId, groupId),
             ),
         });
 
       const statusChecker = new RuleEngine();
       statusConditions.forEach((statusCondition) => {
-        statusChecker.appendRule(statusCondition.condition, { status: statusCondition.status }, statusCondition.order);
+        statusChecker.appendRule(
+          statusCondition.condition, 
+          { status: statusCondition.status }, 
+          statusCondition.order
+        );
       });
 
       status = await statusChecker
@@ -113,53 +161,54 @@ export class AlertProcessor extends WorkerHost {
           ({ events }) => events[0]?.params?.status as 'trigger' | 'resolve',
         );
     }
+    
+    return status;
+  }
 
-    this.logger.debug(status);
-
+  private async handleIncident(
+    alert: Alert,
+    incidentType: IncidentType,
+    groupId: string,
+    status: AlertType | null,
+  ) {
     // 根据匹配的 Incident Type 确认当前是否存在未 Resolved 的 Incident
     const existingIncident = await this.incidentService.findOpenIncidentByType(
-      matchedIncidentType.id,
+      incidentType.id,
+      groupId,
     );
 
     if (existingIncident) {
       // 存在未解决的事件，将 Alert 数据更新到 Incident 中
-      this.logger.log(`找到未解决的事件: ${existingIncident.id}, 更新事件信息`);
-
+      this.logger.log(`Found unresolved incident: ${existingIncident.id}, updating incident information`);
+      
       // 根据 Alert 状态决定是否将 Incident 标记为已解决
       if (status === 'resolve') {
         // 将 Incident 数据更新为 Resolved
-        await this.incidentService.updateIncident(
+        await this.incidentService.resolveIncident(
           existingIncident.id,
-          job.data,
+          alert.id,
           true,
         );
-        this.logger.log(`事件已标记为已解决: ${existingIncident.id}`);
+        this.logger.log(`Incident has been marked as resolved: ${existingIncident.id}`);
       } else {
         // 仅更新 Alert 关联，不改变状态
-        await this.incidentService.updateIncident(
+        await this.incidentService.createChildIncident(
           existingIncident.id,
-          job.data,
+          alert.id,
           false,
         );
-        this.logger.log(`事件已更新最新告警: ${existingIncident.id}`);
+        this.logger.log(`Incident has been updated with latest alert: ${existingIncident.id}`);
       }
+      return;
     } else {
-      // 不存在未解决的事件
-      if (status === 'resolve') {
-        // 如果是解决状态的告警，且没有关联的未解决事件，则不处理
-        this.logger.log('收到解决状态的告警，但没有关联的未解决事件，不处理');
-      } else {
-        // 创建新的 Incident
-        this.logger.log('创建新的事件');
-        const incidentId = await this.incidentService.createIncident(
-          alert,
-          matchedIncidentType,
-        );
-        this.logger.log(`新事件已创建: ${incidentId}`);
-      }
+      const incidentId = await this.incidentService.createIncident(
+        alert,
+        incidentType,
+        groupId,
+        status === 'resolve' ? 'resolved' : 'triggered',
+      );
+      
+      this.logger.log(`New incident created: ${incidentId}`);
     }
-
-    this.logger.log(`告警处理完成: ${job.data}`);
-    return { success: true };
   }
 }

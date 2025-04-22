@@ -34,3 +34,5 @@ export const alertTableRelations = relations(alertTable, ({ one }) => ({
     references: [serviceTable.id],
   }),
 }));
+
+export type Alert = typeof alertTable.$inferSelect;

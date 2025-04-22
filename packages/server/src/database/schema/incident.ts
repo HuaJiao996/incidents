@@ -6,7 +6,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { incidentTypeTable, userTable } from '.';
+import { alertTable, incidentTypeTable, userTable } from '.';
 import { relations } from 'drizzle-orm';
 
 export const incidentStatus = pgEnum('incident_status', [
@@ -15,6 +15,8 @@ export const incidentStatus = pgEnum('incident_status', [
   'resolved',
 ]);
 
+export type IncidentStatus = (typeof incidentStatus.enumValues)[number];
+
 export const incidentTable = pgTable('incident', {
   id: uuid().defaultRandom().primaryKey(),
   title: varchar({ length: 500 }).notNull(),
@@ -22,19 +24,16 @@ export const incidentTable = pgTable('incident', {
   incidentTypeId: uuid()
     .references(() => incidentTypeTable.id)
     .notNull(),
-  incidentTypeGroupId: uuid().references(() => incidentTypeTable.id), // exp
+  incidentTypeGroupId: uuid().references(() => incidentTypeTable.id),
   status: incidentStatus().default('triggered'),
-  detail: jsonb().default({}).notNull().$type<Record<string, unknown>>(),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
   assigneeId: uuid()
-    .references(() => userTable.id)
-    .notNull(),
-  resolvedAt: timestamp().defaultNow().notNull(),
+    .references(() => userTable.id),
+  resolvedAt: timestamp().defaultNow(),
   resolvedById: uuid()
-    .references(() => userTable.id)
-    .notNull(),
-  resolvedReason: varchar({ length: 500 }).notNull(),
+    .references(() => userTable.id),
+  resolvedReason: varchar({ length: 500 }),
 });
 
 export const childIncidentTable = pgTable('child_incident', {
