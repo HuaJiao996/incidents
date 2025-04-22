@@ -41,7 +41,7 @@ export class AlertService {
       if (!matcher) {
         errors.push({
           field: customField.path,
-          reason: `未知的字段类型: ${customField.type}`,
+          reason: `Unknown field type: ${customField.type}`,
         });
         continue;
       }
@@ -86,7 +86,7 @@ export class AlertService {
     const engine = new RuleEngine();
     serviceRoutes.forEach((serviceRoute) => {
       engine.appendRule(
-        serviceRoute.condition as TopLevelCondition,
+        serviceRoute.condition,
         { serviceId: serviceRoute.serviceId },
         serviceRoute.order,
       );

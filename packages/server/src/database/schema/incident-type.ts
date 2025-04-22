@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { integer, jsonb, pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
 import { incidentTypeStatusConditionTable, serviceTable } from '.';
+import { TopLevelCondition } from 'json-rules-engine';
 
 export const incidentTypeTable = pgTable('incident_type', {
   id: uuid().defaultRandom().primaryKey(),
@@ -8,7 +9,7 @@ export const incidentTypeTable = pgTable('incident_type', {
   serviceId: uuid()
     .references(() => serviceTable.id)
     .notNull(),
-  condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(), // exp
+  condition: jsonb().default({}).notNull().$type<TopLevelCondition>(), // exp
   order: integer().notNull(), // exp
   title: varchar({ length: 500 }).notNull(), // exp
   description: varchar({ length: 5000 }).notNull(), // exp

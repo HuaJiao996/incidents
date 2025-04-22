@@ -35,7 +35,7 @@ export class AlertProcessor extends WorkerHost {
     const incidentTypeChecker = new RuleEngine();
     alert.service.incidentTypes.forEach((incidentType) => {
       incidentTypeChecker.appendRule(
-        incidentType.condition as TopLevelCondition,
+        incidentType.condition,
         { incidentType },
         incidentType.order,
       );
@@ -104,11 +104,7 @@ export class AlertProcessor extends WorkerHost {
 
       const statusChecker = new RuleEngine();
       statusConditions.forEach((statusCondition) => {
-        statusChecker.addRule({
-          conditions: statusCondition.condition as TopLevelCondition,
-          event: { type: 'matched', params: { status: statusCondition.status } },
-          priority: statusCondition.order,
-        });
+        statusChecker.appendRule(statusCondition.condition, { status: statusCondition.status }, statusCondition.order);
       });
 
       status = await statusChecker

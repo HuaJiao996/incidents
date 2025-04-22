@@ -15,5 +15,6 @@ export class IncidentProcessor extends WorkerHost {
   }
   async process(job: Job<string>, token?: string) {
     this.logger.log(job.data);
+    // TODO: 处理事件，生成事件ID
   }
 }

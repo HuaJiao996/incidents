@@ -7,6 +7,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { serviceTable } from '.';
+import { TopLevelCondition } from 'json-rules-engine';
 
 export const serviceRouteTable = pgTable('service_route', {
   id: uuid().defaultRandom().primaryKey(),
@@ -14,7 +15,7 @@ export const serviceRouteTable = pgTable('service_route', {
     .references(() => serviceTable.id)
     .notNull(),
   order: integer().notNull(),
-  condition: jsonb().default({}).notNull().$type<Record<string, unknown>>(),
+  condition: jsonb().default({}).notNull().$type<TopLevelCondition>(),
   description: varchar({ length: 5000 }).notNull(),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
