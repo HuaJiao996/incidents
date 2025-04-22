@@ -4,7 +4,6 @@
   "description": "Incidents management system",
   "type": "module",
   "scripts": {
-    "postinstall": "node scripts/postinstall.js",
     "db:install": "node scripts/setup.js install",
     "db:start": "node scripts/setup.js start",
     "install:prod": "cross-env NODE_ENV=production npm install"
@@ -13,6 +12,8 @@
     "chalk": "5.4.1",
     "commander": "13.1.0",
     "shelljs": "0.9.2",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "inquirer": "^9.2.10",
+    "execa": "^8.0.1" 
   }
 }

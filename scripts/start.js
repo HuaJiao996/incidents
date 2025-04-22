@@ -18,7 +18,13 @@ async function startOnMac() {
   
   // 检查并启动 PostgreSQL
   const pgStatus = await execa('brew', ['services', 'list']).then(
-    result => result.stdout.includes('postgresql') && result.stdout.includes('started'),
+    result =>  {
+      const pgLine = result.stdout.split('\n').find(line => 
+        line.includes('postgresql') && // 排除带@的版本化服务
+        line.trim().startsWith('postgresql') // 确保是redis主服务
+      );
+      return pgLine?.includes('started')
+    },
     () => false
   );
   
@@ -32,7 +38,13 @@ async function startOnMac() {
   
   // 检查并启动 Redis
   const redisStatus = await execa('brew', ['services', 'list']).then(
-    result => result.stdout.includes('redis') && result.stdout.includes('started'),
+    result => {
+      const redisLine = result.stdout.split('\n').find(line => 
+        line.includes('redis') && // 排除带@的版本化服务
+        line.trim().startsWith('redis') // 确保是redis主服务
+      );
+      return redisLine?.includes('started');
+    },
     () => false
   );
   
