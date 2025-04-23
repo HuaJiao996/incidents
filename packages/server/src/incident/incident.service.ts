@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/database/database.service';
-import { alertTable, IncidentStatus, incidentTable, IncidentType, incidentTypeTable } from '@/database/schema';
+import { Alert, alertTable, childIncidentTable, Incident, IncidentStatus, incidentTable, IncidentType, incidentTypeTable } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -16,51 +16,80 @@ export class IncidentService {
   ) { }
 
   async createIncident(
-    alertData: typeof alertTable.$inferSelect, incidentTypeData: typeof incidentTypeTable.$inferSelect, groupId: string, status: IncidentStatus = 'triggered',
+    alert: Alert, incidentType: IncidentType, groupId: string, status: IncidentStatus = 'triggered',
   ) {
     this.logger.log(
-      `创建事件: alertId=${alertData.id}, incidentTypeId=${incidentTypeData.id}, serviceId=${incidentTypeData.serviceId}`,
+      `Create incident: alertId=${alert.id}, incidentTypeId=${incidentType.id}, serviceId=${incidentType.serviceId}`,
     );
-    await this.databaseService.getClient().transaction(async (tx) => {
+    const [alertId, incidentId] = await this.databaseService.getClient().transaction(async (tx) => {
       const insertIncident = await tx.insert(incidentTable).values({
-        title: alertData.title,
-        incidentTypeId: incidentTypeData.id,
-        description: alertData.content,
+        title: alert.title,
+        incidentTypeId: incidentType.id,
+        description: alert.content,
         incidentTypeGroupId: groupId,
+        status
       }).returning();
 
       const alertId = tx.update(alertTable).set({
         incidentId: insertIncident[0].id,
-      }).where(eq(alertTable.id, alertData.id)).returning({ id: alertTable.id });
+      }).where(eq(alertTable.id, alert.id)).returning({ id: alertTable.id });
 
-      
+      return [
+        alertId,
+        insertIncident[0].id,
+      ];
     })
 
-    // const result = await this.databaseService.getClient().insert(incident).values({
-    //     title: 'New Incident',
-    //     incidentTypeId: incidentType.id,
-    //     description: 'New Incident',
-    // }).returning({ id: incident.id });
+    this.logger.log(`Incident created successfully: incidentId=${incidentId}`);
 
-    // const incidentId = result[0].id;
-    // this.logger.log(`事件创建成功: incidentId=${incidentId}`);
-
-    // // TODO: 触发事件分配流程
+    // TODO: 触发事件分配流程
     // await this.assignIncident(incidentId);
 
-    // return incidentId;
+    return incidentId;
   }
 
-  async resolveIncident(id: string, data: string, arg2: boolean) {
-    throw new Error('Method not implemented.');
+  async resolveIncident(incidentId: string, alertId: string) {
+    this.logger.log(
+      `Resolving incident: incidentId=${incidentId}, alertId=${alertId}`,
+    );
+    
+    return this.updateIncident(incidentId, alertId, true);
   }
-  async createChildIncident(id: string, data: string, arg2: boolean) {
-    throw new Error('Method not implemented.');
+
+  async createChildIncident(alert: Alert, parentIncident: Incident) {
+    this.logger.log(
+      `Create child incident: alertId=${alert.id}, parentIncident=${parentIncident.id}`,
+    );
+    const [alertId, incidentId] = await this.databaseService.getClient().transaction(async (tx) => {
+      const childIncident = await tx.insert(incidentTable).values({
+        title: alert.title,
+        incidentTypeId: parentIncident.incidentTypeId,
+        description: alert.content,
+        incidentTypeGroupId: parentIncident.incidentTypeGroupId,
+        status: 'triggered',
+      }).returning();
+
+      const alertId = await tx.update(alertTable).set({
+        incidentId: childIncident[0].id,
+      }).where(eq(alertTable.id, alert.id)).returning({ id: alertTable.id });
+
+      await tx.insert(childIncidentTable).values({
+        id: childIncident[0].id,
+        parentId: parentIncident.id,
+      });
+
+      return [
+        alertId,
+        childIncident[0].id,
+      ];
+    })
+
+    this.logger.log(`Child incident create success: childIncidentId=${incidentId}, parentIncidentId=${parentIncident.id}`);
   }
 
   async updateIncident(incidentId: string, alertId: string, resolved: boolean) {
     this.logger.log(
-      `更新事件: incidentId=${incidentId}, alertId=${alertId}, resolved=${resolved}`,
+      `Updating incident: incidentId=${incidentId}, alertId=${alertId}, resolved=${resolved}`,
     );
 
     const updateData: any = {
@@ -79,7 +108,7 @@ export class IncidentService {
       .where(eq(incidentTable.id, incidentId));
 
     this.logger.log(
-      `事件更新成功: incidentId=${incidentId}, status=${resolved ? 'resolved' : 'open'}`,
+      `Incident update success: incidentId=${incidentId}, status=${resolved ? 'resolved' : 'open'}`,
     );
 
     return true;
@@ -97,9 +126,8 @@ export class IncidentService {
   }
 
   private async assignIncident(incidentId: string) {
-    this.logger.log(`开始分配事件: incidentId=${incidentId}`);
+    this.logger.log(`Starting incident assignment: incidentId=${incidentId}`);
     // TODO: 实现事件分配逻辑
-    // 这里将来会调用 IncidentAssigner 服务
-    this.logger.log(`事件分配完成: incidentId=${incidentId}`);
+    this.logger.log(`Incident assignment completed: incidentId=${incidentId}`);
   }
 }

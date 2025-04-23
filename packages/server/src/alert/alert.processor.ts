@@ -95,8 +95,8 @@ export class AlertProcessor extends WorkerHost {
     this.logger.debug(matchedIncidentType);
 
     if (!matchedIncidentType) {
-      this.logger.error('没有匹配的 Incident Type');
-      return null; // 处理错误
+      this.logger.error('No matching Incident Type');
+      return null; // TODO: 处理错误
     }
     
     return matchedIncidentType;
@@ -187,25 +187,24 @@ export class AlertProcessor extends WorkerHost {
         await this.incidentService.resolveIncident(
           existingIncident.id,
           alert.id,
-          true,
         );
         this.logger.log(`Incident has been marked as resolved: ${existingIncident.id}`);
       } else {
         // 仅更新 Alert 关联，不改变状态
         await this.incidentService.createChildIncident(
-          existingIncident.id,
-          alert.id,
-          false,
+          alert,
+          existingIncident,
         );
         this.logger.log(`Incident has been updated with latest alert: ${existingIncident.id}`);
       }
       return;
     } else {
+      const incidentStatus = status ==='resolve' ? 'resolved' : 'triggered';
       const incidentId = await this.incidentService.createIncident(
         alert,
         incidentType,
         groupId,
-        status === 'resolve' ? 'resolved' : 'triggered',
+        incidentStatus,
       );
       
       this.logger.log(`New incident created: ${incidentId}`);

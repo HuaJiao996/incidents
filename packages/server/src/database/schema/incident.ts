@@ -52,3 +52,5 @@ export const incidentTableRelations = relations(incidentTable, ({ many, one }) =
     references: [childIncidentTable.parentId],
   }),
 }));
+
+export type Incident = typeof incidentTable.$inferSelect;
