@@ -1,1 +1,0 @@
-CREATE INDEX "incident_type_id_group_id_idx" ON "incident_type_status_condition" USING btree ("incident_type_id","group_id");
