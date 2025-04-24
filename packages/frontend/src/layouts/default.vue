@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import LanguageSwitcher from '../components/LanguageSwitcher.vue';
+import { useI18n } from 'vue-i18n';
 
 // 侧边栏状态控制
 const sidebarVisible = ref(true);
@@ -29,6 +31,7 @@ const menuItems = [
         </div>
       </div>
       <div class="layout-topbar-right">
+        <LanguageSwitcher class="language-switcher-topbar" />
         <button class="p-link">
           <i class="pi pi-bell"></i>
         </button>
@@ -69,6 +72,12 @@ const menuItems = [
   background-color: var(--surface-ground, #f8f9fa);
 }
 
+.language-switcher-topbar {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
 .layout-topbar {
   position: fixed;
   top: 0;
@@ -98,7 +107,32 @@ const menuItems = [
 
 .layout-topbar-right {
   display: flex;
+  align-items: center;
   gap: 1rem;
+}
+
+.language-switcher-topbar :deep(.language-switcher) {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.language-switcher-topbar :deep(.language-options) {
+  display: flex;
+  gap: 5px;
+  margin: 0;
+}
+
+.language-switcher-topbar :deep(h3) {
+  display: none;
+}
+
+.language-switcher-topbar :deep(button) {
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  background-color: transparent;
+  border: 1px solid var(--surface-border, #dee2e6);
+  border-radius: 4px;
 }
 
 .menu-button,

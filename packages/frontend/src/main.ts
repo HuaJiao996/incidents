@@ -6,6 +6,7 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import App from './App.vue'
 import PrimeVueConfig from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
+import i18n from './i18n';
 
 async function bootstrap() {
   const router = createRouter({
@@ -15,6 +16,7 @@ async function bootstrap() {
   const app = createApp(App)
 
   app.use(router)
+  app.use(i18n)
   app.use(PrimeVueConfig, {
     theme: {
       preset: Aura
