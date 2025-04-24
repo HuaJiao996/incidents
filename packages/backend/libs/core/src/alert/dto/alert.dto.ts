@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
-import { AlertType } from '@app/database/schema';
+import { AlertType } from '@libs/database/schema';
 
 export class AlertDto {
   @ApiProperty()

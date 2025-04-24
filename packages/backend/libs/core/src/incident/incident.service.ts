@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Alert, alertTable, childIncidentTable, Incident, IncidentStatus, incidentTable, IncidentType } from '@app/database/schema';
+import { Alert, alertTable, childIncidentTable, Incident, IncidentStatus, incidentTable, IncidentType } from '@libs/database/schema';
 import { eq } from 'drizzle-orm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { DatabaseService } from '@app/database';
+import { DatabaseService } from '@libs/database';
 
 @Injectable()
 export class IncidentService {

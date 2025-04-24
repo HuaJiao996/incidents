@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { IncidentService } from './incident.service';
 import { Logger } from '@nestjs/common';
-import { DatabaseService } from '@app/database';
+import { DatabaseService } from '@libs/database';
 
 @Processor('incidentQueue')
 export class IncidentProcessor extends WorkerHost {

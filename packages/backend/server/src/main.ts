@@ -6,8 +6,8 @@ import {
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from '@app/common/filters/http-exception.filter';
-import { LoggingInterceptor } from '@app/common/interceptors/logging.interceptor';
+import { HttpExceptionFilter } from '@libs/common/filters/http-exception.filter';
+import { LoggingInterceptor } from '@libs/common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(

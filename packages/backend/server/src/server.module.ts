@@ -1,7 +1,7 @@
-import { ApiModule } from '@app/api';
-import { CoreModule } from '@app/core';
-import { DatabaseModule } from '@app/database';
-import { RedisModule } from '@app/redis';
+import { ApiModule } from '@libs/api';
+import { CoreModule } from '@libs/core';
+import { DatabaseModule } from '@libs/database';
+import { RedisModule } from '@libs/redis';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 

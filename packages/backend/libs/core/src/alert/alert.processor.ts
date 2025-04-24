@@ -1,11 +1,11 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { DatabaseService } from '@app/database';
-import { RuleEngine } from '@app/common/rule-engine/rule-engine';
+import { DatabaseService } from '@libs/database';
+import { RuleEngine } from '@libs/common/rule-engine/rule-engine';
 import { TopLevelCondition } from 'json-rules-engine';
 import { tryit } from 'radash';
-import { Alert, AlertType, IncidentType } from '@app/database/schema';
+import { Alert, AlertType, IncidentType } from '@libs/database/schema';
 import { IncidentService } from '../incident/incident.service';
 
 @Processor('alertQueue')

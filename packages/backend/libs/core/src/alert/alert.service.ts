@@ -2,14 +2,14 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { AlertDto } from './dto/alert.dto';
-import { alertTable } from '@app/database/schema';
+import { alertTable } from '@libs/database/schema';
 import { CustomFieldDto } from './dto/custom-field.dto';
 import { get } from 'radash';
-import { DatabaseService } from '@app/database';
-import { RedisService } from '@app/redis';
-import { CustomFieldValidationException } from '@app/common/exceptions/custom-field-validation.exception';
-import { RuleEngine } from '@app/common/rule-engine/rule-engine';
-import { customFieldValidators } from '@app/common/validators/custom-field.validator';
+import { DatabaseService } from '@libs/database';
+import { RedisService } from '@libs/redis';
+import { CustomFieldValidationException } from '@libs/common/exceptions/custom-field-validation.exception';
+import { RuleEngine } from '@libs/common/rule-engine/rule-engine';
+import { customFieldValidators } from '@libs/common/validators/custom-field.validator';
 
 @Injectable()
 export class AlertService {

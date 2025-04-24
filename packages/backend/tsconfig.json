@@ -18,34 +18,34 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@app/api": [
+      "@libs/api": [
         "libs/api/src"
       ],
-      "@app/api/*": [
+      "@libs/api/*": [
         "libs/api/src/*"
       ],
-      "@app/common": [
+      "@libs/common": [
         "libs/common/src"
       ],
-      "@app/common/*": [
+      "@libs/common/*": [
         "libs/common/src/*"
       ],
-      "@app/core": [
+      "@libs/core": [
         "libs/core/src"
       ],
-      "@app/core/*": [
+      "@libs/core/*": [
         "libs/core/src/*"
       ],
-      "@app/database": [
+      "@libs/database": [
         "libs/database/src"
       ],
-      "@app/database/*": [
+      "@libs/database/*": [
         "libs/database/src/*"
       ],
-      "@app/redis": [
+      "@libs/redis": [
         "libs/redis/src"
       ],
-      "@app/redis/*": [
+      "@libs/redis/*": [
         "libs/redis/src/*"
       ]
     }

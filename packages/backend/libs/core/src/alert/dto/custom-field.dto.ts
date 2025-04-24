@@ -1,4 +1,4 @@
-import { CustomFieldType } from '@app/database/schema';
+import { CustomFieldType } from '@libs/database/schema';
 
 export class CustomFieldDto {
   path: string;
