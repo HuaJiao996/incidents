@@ -28,11 +28,9 @@ export const incidentTable = pgTable('incident', {
   status: incidentStatus().default('triggered'),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
-  assigneeId: uuid()
-    .references(() => userTable.id),
+  assigneeId: uuid().references(() => userTable.id),
   resolvedAt: timestamp().defaultNow(),
-  resolvedById: uuid()
-    .references(() => userTable.id),
+  resolvedById: uuid().references(() => userTable.id),
   resolvedReason: varchar({ length: 500 }),
 });
 
@@ -45,12 +43,15 @@ export const childIncidentTable = pgTable('child_incident', {
     .notNull(),
 });
 
-export const incidentTableRelations = relations(incidentTable, ({ many, one }) => ({
-  childIncidents: many(childIncidentTable),
-  parentIncident: one(childIncidentTable, {
-    fields: [incidentTable.id],
-    references: [childIncidentTable.parentId],
+export const incidentTableRelations = relations(
+  incidentTable,
+  ({ many, one }) => ({
+    childIncidents: many(childIncidentTable),
+    parentIncident: one(childIncidentTable, {
+      fields: [incidentTable.id],
+      references: [childIncidentTable.parentId],
+    }),
   }),
-}));
+);
 
 export type Incident = typeof incidentTable.$inferSelect;

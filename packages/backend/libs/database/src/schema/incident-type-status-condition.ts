@@ -15,7 +15,12 @@ export const incidentTypeStatusConditionTable = pgTable(
     order: integer().notNull(), // exp
     groupId: uuid().references(() => incidentTypeGroupTable.id), // exp
   },
-  (t) => [index('incident_type_status_condition_incident_type_id_group_id_idx').on(t.incidentTypeId, t.groupId)]
+  (t) => [
+    index('incident_type_status_condition_incident_type_id_group_id_idx').on(
+      t.incidentTypeId,
+      t.groupId,
+    ),
+  ],
 );
 
 export const incidentTypeStatusConditionTableRelations = relations(

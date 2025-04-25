@@ -1,5 +1,5 @@
 import { Engine, TopLevelCondition } from 'json-rules-engine';
-export {TopLevelCondition} from 'json-rules-engine';
+export { TopLevelCondition } from 'json-rules-engine';
 
 export class RuleEngine extends Engine {
   public static Matched = 'matched';

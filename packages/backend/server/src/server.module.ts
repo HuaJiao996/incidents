@@ -10,10 +10,8 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    RedisModule.forRoot(),
-    DatabaseModule,
     CoreModule,
-    ApiModule
-  ]
+    ApiModule,
+  ],
 })
 export class ServerModule {}

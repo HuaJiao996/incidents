@@ -8,7 +8,11 @@ export const serviceTable = pgTable('service', {
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
 });
+
 export const serviceTableRelations = relations(serviceTable, ({ many }) => ({
   customFields: many(serviceCustomFieldTable),
   incidentTypes: many(incidentTypeTable),
 }));
+
+export type Service = typeof serviceTable.$inferSelect;
+export type NewService = typeof serviceTable.$inferInsert;

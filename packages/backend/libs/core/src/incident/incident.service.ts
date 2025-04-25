@@ -1,5 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Alert, alertTable, childIncidentTable, Incident, IncidentStatus, incidentTable, IncidentType } from '@libs/database/schema';
+import {
+  Alert,
+  alertTable,
+  childIncidentTable,
+  Incident,
+  IncidentStatus,
+  incidentTable,
+  IncidentType,
+} from '@libs/database/schema';
 import { eq } from 'drizzle-orm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -7,38 +15,46 @@ import { DatabaseService } from '@libs/database';
 
 @Injectable()
 export class IncidentService {
-
   private readonly logger = new Logger(IncidentService.name);
 
   constructor(
     @InjectQueue('incidentQueue') private readonly incidentQueue: Queue,
     private readonly databaseService: DatabaseService,
-  ) { }
+  ) {}
 
   async createIncident(
-    alert: Alert, incidentType: IncidentType, groupId: string, status: IncidentStatus = 'triggered',
+    alert: Alert,
+    incidentType: IncidentType,
+    groupId: string,
+    status: IncidentStatus = 'triggered',
   ) {
     this.logger.log(
       `Create incident: alertId=${alert.id}, incidentTypeId=${incidentType.id}, serviceId=${incidentType.serviceId}`,
     );
-    const [alertId, incidentId] = await this.databaseService.getClient().transaction(async (tx) => {
-      const insertIncident = await tx.insert(incidentTable).values({
-        title: alert.title,
-        incidentTypeId: incidentType.id,
-        description: alert.content,
-        incidentTypeGroupId: groupId,
-        status
-      }).returning();
+    const [alertId, incidentId] = await this.databaseService
+      .getClient()
+      .transaction(async (tx) => {
+        const insertIncident = await tx
+          .insert(incidentTable)
+          .values({
+            title: alert.title,
+            incidentTypeId: incidentType.id,
+            description: alert.content,
+            incidentTypeGroupId: groupId,
+            status,
+          })
+          .returning();
 
-      const alertId = tx.update(alertTable).set({
-        incidentId: insertIncident[0].id,
-      }).where(eq(alertTable.id, alert.id)).returning({ id: alertTable.id });
+        const alertId = tx
+          .update(alertTable)
+          .set({
+            incidentId: insertIncident[0].id,
+          })
+          .where(eq(alertTable.id, alert.id))
+          .returning({ id: alertTable.id });
 
-      return [
-        alertId,
-        insertIncident[0].id,
-      ];
-    })
+        return [alertId, insertIncident[0].id];
+      });
 
     this.logger.log(`Incident created successfully: incidentId=${incidentId}`);
 
@@ -52,7 +68,7 @@ export class IncidentService {
     this.logger.log(
       `Resolving incident: incidentId=${incidentId}, alertId=${alertId}`,
     );
-    
+
     return this.updateIncident(incidentId, alertId, true);
   }
 
@@ -60,31 +76,39 @@ export class IncidentService {
     this.logger.log(
       `Create child incident: alertId=${alert.id}, parentIncident=${parentIncident.id}`,
     );
-    const [alertId, incidentId] = await this.databaseService.getClient().transaction(async (tx) => {
-      const childIncident = await tx.insert(incidentTable).values({
-        title: alert.title,
-        incidentTypeId: parentIncident.incidentTypeId,
-        description: alert.content,
-        incidentTypeGroupId: parentIncident.incidentTypeGroupId,
-        status: 'triggered',
-      }).returning();
+    const [alertId, incidentId] = await this.databaseService
+      .getClient()
+      .transaction(async (tx) => {
+        const childIncident = await tx
+          .insert(incidentTable)
+          .values({
+            title: alert.title,
+            incidentTypeId: parentIncident.incidentTypeId,
+            description: alert.content,
+            incidentTypeGroupId: parentIncident.incidentTypeGroupId,
+            status: 'triggered',
+          })
+          .returning();
 
-      const alertId = await tx.update(alertTable).set({
-        incidentId: childIncident[0].id,
-      }).where(eq(alertTable.id, alert.id)).returning({ id: alertTable.id });
+        const alertId = await tx
+          .update(alertTable)
+          .set({
+            incidentId: childIncident[0].id,
+          })
+          .where(eq(alertTable.id, alert.id))
+          .returning({ id: alertTable.id });
 
-      await tx.insert(childIncidentTable).values({
-        id: childIncident[0].id,
-        parentId: parentIncident.id,
+        await tx.insert(childIncidentTable).values({
+          id: childIncident[0].id,
+          parentId: parentIncident.id,
+        });
+
+        return [alertId, childIncident[0].id];
       });
 
-      return [
-        alertId,
-        childIncident[0].id,
-      ];
-    })
-
-    this.logger.log(`Child incident create success: childIncidentId=${incidentId}, parentIncidentId=${parentIncident.id}`);
+    this.logger.log(
+      `Child incident create success: childIncidentId=${incidentId}, parentIncidentId=${parentIncident.id}`,
+    );
   }
 
   async updateIncident(incidentId: string, alertId: string, resolved: boolean) {

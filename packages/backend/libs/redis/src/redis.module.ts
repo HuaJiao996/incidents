@@ -1,7 +1,7 @@
 import { Module, Global, DynamicModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { RedisService } from './redis.service';
-
+export const REDIS_CONNECTION_PROVIDER = 'REDIS_CONNECTION';
 @Global()
 @Module({
   imports: [ConfigModule],
@@ -14,7 +14,7 @@ export class RedisModule {
       module: RedisModule,
       providers: [
         {
-          provide: 'REDIS_CONNECTION',
+          provide: REDIS_CONNECTION_PROVIDER,
           useFactory: (redisService: RedisService) => {
             return {
               connection: redisService.getClient(),
