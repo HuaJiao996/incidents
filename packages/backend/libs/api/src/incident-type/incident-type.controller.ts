@@ -7,28 +7,28 @@ import { UpdateIncidentTypeDto } from './dto/update-incident-type.dto';
 export class IncidentTypeController {
   constructor(private readonly incidentTypeService: IncidentTypeService) {}
 
-  @Post()
-  create(@Body() createIncidentTypeDto: CreateIncidentTypeDto) {
+  @Post(':serviceId')
+  create(@Param('serviceId') serviceId: string, @Body() createIncidentTypeDto: CreateIncidentTypeDto) {
     return this.incidentTypeService.create(createIncidentTypeDto);
   }
 
-  @Get()
-  findAll() {
+  @Get(':serviceId')
+  findAll(@Param('serviceId') serviceId: string,) {
     return this.incidentTypeService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get(':serviceId/:id')
+  findOne(@Param('serviceId') serviceId: string, @Param('id') id: string) {
     return this.incidentTypeService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateIncidentTypeDto: UpdateIncidentTypeDto) {
+  @Patch(':serviceId/:id')
+  update(@Param('serviceId') serviceId: string, @Param('id') id: string, @Body() updateIncidentTypeDto: UpdateIncidentTypeDto) {
     return this.incidentTypeService.update(+id, updateIncidentTypeDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Delete(':serviceId/:id')
+  remove(@Param('serviceId') serviceId: string, @Param('id') id: string) {
     return this.incidentTypeService.remove(+id);
   }
 }

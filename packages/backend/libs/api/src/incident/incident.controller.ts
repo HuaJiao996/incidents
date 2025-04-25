@@ -27,8 +27,4 @@ export class IncidentController {
     return this.incidentService.update(+id, updateIncidentDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.incidentService.remove(+id);
-  }
 }
