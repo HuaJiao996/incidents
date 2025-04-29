@@ -27,3 +27,5 @@ export const globalCustomFieldTable = pgTable('global_custom_field', {
   // updatedAt: timestamp().defaultNow().notNull(),
   // updatedBy: uuid().references(() => user.id).notNull(), // updated
 });
+
+export type GlobalCustomField = typeof globalCustomFieldTable.$inferSelect;

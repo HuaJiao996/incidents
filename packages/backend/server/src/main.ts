@@ -5,9 +5,11 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from '@libs/common/filters/http-exception.filter';
 import { LoggingInterceptor } from '@libs/common/interceptors/logging.interceptor';
+import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
+
+patchNestJsSwagger()
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -17,18 +19,20 @@ async function bootstrap() {
       logger: ['log', 'error', 'warn', 'debug', 'verbose'],
     },
   );
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ZodValidationPipe());
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   app.enableCors();
+
+
   const config = new DocumentBuilder()
-    .setTitle('API')
-    .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, documentFactory);
+  SwaggerModule.setup('swagger', app, documentFactory, {
+    jsonDocumentUrl: 'swagger/json',
+  });
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap().catch(console.error);

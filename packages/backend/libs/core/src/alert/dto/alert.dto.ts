@@ -1,19 +1,12 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
-import { AlertType } from '@libs/database/schema';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
-export class AlertDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  title: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
-  content: string;
+const AlertSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  type: z.enum(['trigger', 'resolve']),
+  customFields: z.record(z.unknown()).optional(),
+})
 
-  @ApiPropertyOptional({ enum: ['trigger', 'resolve'] })
-  type: AlertType | undefined;
-
-  @ApiPropertyOptional()
-  customFields: Record<string, unknown> | undefined;
-}
+export class AlertDto extends createZodDto(AlertSchema) {}

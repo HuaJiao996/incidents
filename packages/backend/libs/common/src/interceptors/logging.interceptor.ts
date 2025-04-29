@@ -15,10 +15,9 @@ export class LoggingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<FastifyRequest>();
-    const { method, url, body, params, query } = request;
+    const { method, url, body = {}, params  = {}, query = {} } = request;
     const userAgent = request.headers['user-agent'] || '';
     const ip = request.ip;
-
     const now = Date.now();
     this.logger.log(
       `Request Start - ${method} ${url} - IP: ${ip} - UserAgent: ${userAgent}`,

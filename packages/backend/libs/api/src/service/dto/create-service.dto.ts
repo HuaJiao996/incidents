@@ -1,5 +1,11 @@
-import { NewService } from '@libs/database/schema';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class CreateServiceDto implements NewService {
-  name: string;
-}
+
+const createServiceSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+export class CreateServiceDto extends createZodDto(createServiceSchema) {}
+

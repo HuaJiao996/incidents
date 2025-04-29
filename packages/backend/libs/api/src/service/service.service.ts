@@ -1,7 +1,7 @@
 import { DatabaseService } from '@libs/database';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
-import { serviceTable } from '@libs/database/schema';
+import { incidentTable, incidentTypeTable, serviceTable } from '@libs/database/schema';
 import { eq } from 'drizzle-orm';
 
 @Injectable()
@@ -9,11 +9,23 @@ export class ServiceService {
   constructor(private readonly databaseService: DatabaseService) {}
   async create(createServiceDto: CreateServiceDto) {
     const service = await this.databaseService
-      .getClient()
-      .insert(serviceTable)
-      .values(createServiceDto)
-      .returning();
-    return service[0];
+      .getClient().transaction(async (tx) => {
+        const service = await tx.insert(serviceTable)
+          .values(createServiceDto)
+          .returning();
+
+        const incidentType = await tx.insert(incidentTypeTable).values({
+          name: 'Default Incident',
+          serviceId: service[0].id,
+          order: 0,
+          description: 'Default Incident',
+          title: 'Default Incident',
+        }).returning();
+
+        return service[0];
+      })
+      
+    return service;
   }
 
   async findAll() {
@@ -28,6 +40,12 @@ export class ServiceService {
       .getClient()
       .query.serviceTable.findFirst({
         where: (service, { eq }) => eq(service.id, id),
+        with: {
+          incidentTypes: {
+            orderBy: (incidentType, { asc }) => asc(incidentType.order),
+          },
+          customFields: true,
+        },
       });
 
     if (!service) {

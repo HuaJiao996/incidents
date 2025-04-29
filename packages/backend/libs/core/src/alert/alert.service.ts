@@ -2,8 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { AlertDto } from './dto/alert.dto';
-import { alertTable } from '@libs/database/schema';
-import { CustomFieldDto } from './dto/custom-field.dto';
+import { alertTable, GlobalCustomField, ServiceCustomField } from '@libs/database/schema';
 import { get } from 'radash';
 import { DatabaseService } from '@libs/database';
 import { RedisService } from '@libs/redis';
@@ -28,7 +27,7 @@ export class AlertService {
     return this.checkCustomField(alertDto, globalCustomFields);
   }
 
-  private checkCustomField(alertDto: AlertDto, customFields: CustomFieldDto[]) {
+  private checkCustomField(alertDto: AlertDto, customFields: (GlobalCustomField | ServiceCustomField)[]) {
     const errors: { field: string; reason: string }[] = [];
 
     for (const customField of customFields) {

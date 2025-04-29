@@ -4,7 +4,8 @@ import { incidentTypeTable, serviceCustomFieldTable } from '.';
 
 export const serviceTable = pgTable('service', {
   id: uuid().defaultRandom().primaryKey(),
-  name: varchar({ length: 500 }).notNull(),
+  name: varchar({ length: 500 }).notNull().unique(),
+  description: varchar({ length: 1000 }),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
 });

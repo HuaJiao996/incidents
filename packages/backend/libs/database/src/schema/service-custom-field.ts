@@ -25,3 +25,5 @@ export const serviceCustomFieldTableRelations = relations(
     }),
   }),
 );
+
+export type ServiceCustomField = typeof serviceCustomFieldTable.$inferSelect;
