@@ -23,10 +23,10 @@ async function main() {
   await prisma.$executeRaw`
     INSERT INTO service_routes (id, "serviceId", "order", condition, description, "createdAt", "updatedAt")
     VALUES 
-      (1, 1, 0, '"title|matches(\\"Web\\")"', 'Web服务的告警路由', NOW(), NOW()),
-      (2, 2, 1, '"title|matches(\\"API\\")"', 'API服务的告警路由', NOW(), NOW()),
-      (3, 3, 2, '"title|matches(\\"Database\\")"', '数据库服务的告警路由', NOW(), NOW()),
-      (4, 1, 3, '"(title|matches(\\"前端\\") && content|matches(\\"错误\\")) || (title|matches(\\"UI\\") && content|matches(\\"崩溃\\"))"', '前端UI错误路由', NOW(), NOW())
+      (1, 1, 0, 'title|matches("Web")', 'Web服务的告警路由', NOW(), NOW()),
+      (2, 2, 1, 'title|matches("API")', 'API服务的告警路由', NOW(), NOW()),
+      (3, 3, 2, 'title|matches("Database")', '数据库服务的告警路由', NOW(), NOW()),
+      (4, 1, 3, '(title|matches("前端") && content|matches("错误")) || (title|matches("UI") && content|matches("崩溃"))', '前端UI错误路由', NOW(), NOW())
     ON CONFLICT (id) DO UPDATE 
     SET "serviceId" = EXCLUDED."serviceId", 
         "order" = EXCLUDED."order", 
@@ -55,10 +55,10 @@ async function main() {
   await prisma.$executeRaw`
     INSERT INTO incident_types (id, name, "serviceId", description, condition, "groupCondition", priority, "createdAt", "updatedAt")
     VALUES 
-      (1, '网站崩溃', 1, '网站无法访问或崩溃', '"title|matches(\\"崩溃\\")"', '"title|matches(\\"崩溃\\")"', 0, NOW(), NOW()),
-      (2, 'API超时', 2, 'API请求响应时间过长', '"title|matches(\\"超时\\")"', '"title == \\"API超时\\" && customFields.environment == \\"production\\""', 0, NOW(), NOW()),
-      (3, '数据库连接异常', 3, '数据库连接失败或超时', '"title|matches(\\"连接\\")"', NULL, 0, NOW(), NOW()),
-      (4, '复杂前端错误', 1, '复杂的前端系统错误', '"(title|matches(\\"前端\\") && customFields.browser == \\"Chrome\\") || (title|matches(\\"UI\\") && customFields.priority == \\"high\\" && content|matches(\\"紧急\\"))"', '"customFields.browser == \\"Chrome\\" && [\\"high\\", \\"critical\\"].includes(customFields.priority)"', 1, NOW(), NOW())
+      (1, '网站崩溃', 1, '网站无法访问或崩溃', 'title|matches("崩溃")', 'title|matches("崩溃")', 0, NOW(), NOW()),
+      (2, 'API超时', 2, 'API请求响应时间过长', 'title|matches("超时")', 'title == "API超时" && customFields.environment == "production"', 0, NOW(), NOW()),
+      (3, '数据库连接异常', 3, '数据库连接失败或超时', 'title|matches("连接")', NULL, 0, NOW(), NOW()),
+      (4, '复杂前端错误', 1, '复杂的前端系统错误', '(title|matches("前端") && customFields.browser == "Chrome") || (title|matches("UI") && customFields.priority == "high" && content|matches("紧急"))', 'customFields.browser == "Chrome" && ["high", "critical"].includes(customFields.priority)', 1, NOW(), NOW())
     ON CONFLICT (id) DO UPDATE 
     SET name = EXCLUDED.name, 
         "serviceId" = EXCLUDED."serviceId", 

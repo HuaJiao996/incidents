@@ -14,6 +14,16 @@ interface Rule {
 }
 
 /**
+ * 规则引擎适配器错误类
+ */
+export class RuleEngineError extends Error {
+  constructor(message: string, public code: string) {
+    super(message);
+    this.name = 'RuleEngineError';
+  }
+}
+
+/**
  * 规则引擎适配器
  * 管理多个规则的注册和执行
  */
@@ -27,27 +37,34 @@ export class RuleEngineAdapter {
    * @param matchedResult 匹配结果
    * @param priority 优先级
    * @param type 事件类型
+   * @throws RuleEngineError
    */
   appendRule(
     expression: string,
     matchedResult: Record<string, any> = {},
     priority: number = 0,
     type: string = RuleEngineAdapter.MATCHED,
-  ): this {
+  ): void {
+    if (!expression || typeof expression !== 'string') {
+      throw new RuleEngineError('表达式不能为空', 'INVALID_EXPRESSION');
+    }
+
     const ruleId = `rule_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     try {
+      const engine = new JexlRuleEngine(expression);
       this.rules.set(ruleId, {
         id: ruleId,
-        engine: new JexlRuleEngine(expression),
+        engine,
         result: { ...matchedResult, type },
         priority
       });
     } catch (error) {
-      console.error('规则创建失败:', error);
+      throw new RuleEngineError(
+        `规则创建失败: ${error instanceof Error ? error.message : String(error)}`,
+        'RULE_CREATION_FAILED'
+      );
     }
-    
-    return this;
   }
   
   /**
