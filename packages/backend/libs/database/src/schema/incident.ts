@@ -8,6 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { alertTable, incidentTypeTable, userTable } from '.';
 import { relations } from 'drizzle-orm';
+import { withAtTimestemp } from './utils';
 
 export const incidentStatus = pgEnum('incident_status', [
   'triggered',
@@ -17,7 +18,7 @@ export const incidentStatus = pgEnum('incident_status', [
 
 export type IncidentStatus = (typeof incidentStatus.enumValues)[number];
 
-export const incidentTable = pgTable('incident', {
+export const incidentTable = pgTable('incident', withAtTimestemp({
   id: uuid().defaultRandom().primaryKey(),
   title: varchar({ length: 500 }).notNull(),
   description: varchar({ length: 5000 }).notNull(),
@@ -32,7 +33,7 @@ export const incidentTable = pgTable('incident', {
   resolvedAt: timestamp().defaultNow(),
   resolvedById: uuid().references(() => userTable.id),
   resolvedReason: varchar({ length: 500 }),
-});
+}));
 
 export const childIncidentTable = pgTable('child_incident', {
   id: uuid()

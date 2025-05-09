@@ -24,4 +24,17 @@ export class DatabaseService implements OnModuleInit {
   getClient() {
     return this.db;
   }
+
+  query() {
+    return this.db.query;
+  }
+
+  select() {
+    return this.db.select;
+  }
+
+  insert() {
+    return this.db.insert;
+  }
+  
 }

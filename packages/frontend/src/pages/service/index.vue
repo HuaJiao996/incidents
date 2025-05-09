@@ -113,10 +113,13 @@ const formatDate = (dateString: string) => {
   <div class="services-page">
     <div class="page-header">
       <h1>服务列表</h1>
-      <button class="refresh-button" @click="loadServices" :disabled="loading">
-        <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
-        刷新
-      </button>
+      <Button
+        label="刷新"
+        icon="pi pi-refresh"
+        :loading="loading"
+        @click="loadServices"
+        severity="secondary"
+      />
     </div>
 
     <div class="services-list" v-if="services.length > 0">
@@ -183,25 +186,7 @@ const formatDate = (dateString: string) => {
   margin-bottom: 20px;
 }
 
-.refresh-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-}
 
-.refresh-button:hover {
-  background-color: #e0e0e0;
-}
-
-.refresh-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
 
 .services-list {
   display: flex;

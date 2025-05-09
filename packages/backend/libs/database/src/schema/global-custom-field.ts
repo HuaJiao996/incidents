@@ -6,6 +6,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
+import { withAtTimestemp } from './utils';
 
 export const customFieldType = pgEnum('custom_field_type', [
   'string',
@@ -17,15 +18,12 @@ export const customFieldType = pgEnum('custom_field_type', [
 
 export type CustomFieldType = (typeof customFieldType.enumValues)[number];
 
-export const globalCustomFieldTable = pgTable('global_custom_field', {
+export const globalCustomFieldTable = pgTable('global_custom_field', withAtTimestemp({
   id: uuid().defaultRandom().primaryKey(),
   path: varchar({ length: 500 }).notNull(),
   type: customFieldType().notNull(),
   required: boolean().default(false).notNull(),
   enumValues: jsonb().default([]).notNull().$type<unknown[]>(),
-  // createdAt: timestamp().defaultNow().notNull(),
-  // updatedAt: timestamp().defaultNow().notNull(),
-  // updatedBy: uuid().references(() => user.id).notNull(), // updated
-});
+}));
 
 export type GlobalCustomField = typeof globalCustomFieldTable.$inferSelect;

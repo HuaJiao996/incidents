@@ -272,15 +272,23 @@ const formatDate = (dateString: string) => {
 
       <!-- 操作按钮 -->
       <div class="service-actions">
-        <button class="action-button primary">
-          <i class="pi pi-refresh"></i> 重启服务
-        </button>
-        <button class="action-button">
-          <i class="pi pi-cog"></i> 配置
-        </button>
-        <button class="action-button">
-          <i class="pi pi-chart-line"></i> 查看详细监控
-        </button>
+        <Button
+          label="重启服务"
+          icon="pi pi-refresh"
+          severity="success"
+          class="mr-2"
+        />
+        <Button
+          label="配置"
+          icon="pi pi-cog"
+          severity="secondary"
+          class="mr-2"
+        />
+        <Button
+          label="查看详细监控"
+          icon="pi pi-chart-line"
+          severity="secondary"
+        />
       </div>
     </div>
 
@@ -490,31 +498,7 @@ const formatDate = (dateString: string) => {
   flex-wrap: wrap;
 }
 
-.action-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-}
 
-.action-button:hover {
-  background-color: #e0e0e0;
-}
-
-.action-button.primary {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-}
-
-.action-button.primary:hover {
-  background-color: #45a049;
-}
 
 .loading-state, .error-state, .not-found {
   display: flex;

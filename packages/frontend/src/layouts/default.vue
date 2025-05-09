@@ -11,10 +11,18 @@ const toggleSidebar = () => {
 
 // 模拟菜单项
 const menuItems = [
-  { label: '首页', icon: 'pi pi-home', to: '/' },
-  { label: '事件', icon: 'pi pi-exclamation-circle', to: '/incidents' },
-  { label: '报告', icon: 'pi pi-chart-bar', to: '/reports' },
-  { label: '设置', icon: 'pi pi-cog', to: '/settings' },
+  { label: '仪表盘', icon: 'pi pi-home', to: '/dashboard' },
+  {
+    label: '事件管理',
+    icon: 'pi pi-exclamation-circle',
+    items: [
+      { label: '事件列表', to: '/incident' },
+      { label: '创建事件', to: '/incident/create' }
+    ]
+  },
+  { label: '告警管理', icon: 'pi pi-bell', to: '/alert' },
+  { label: '服务管理', icon: 'pi pi-server', to: '/service' },
+  { label: '用户管理', icon: 'pi pi-user', to: '/user' }
 ];
 </script>
 

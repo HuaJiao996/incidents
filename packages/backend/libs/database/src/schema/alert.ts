@@ -8,11 +8,12 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { incidentTable, serviceTable } from '.';
+import { withAtTimestemp } from './utils';
 
 export const alertType = pgEnum('alert_type', ['trigger', 'resolve']);
 export type AlertType = (typeof alertType.enumValues)[number];
 
-export const alertTable = pgTable('alert', {
+export const alertTable = pgTable('alert', withAtTimestemp({
   id: uuid().defaultRandom().primaryKey(),
   title: varchar({ length: 500 }).notNull(),
   content: varchar({ length: 5000 }).notNull(),
@@ -20,9 +21,7 @@ export const alertTable = pgTable('alert', {
   type: alertType(),
   serviceId: uuid().references(() => serviceTable.id),
   incidentId: uuid().references(() => incidentTable.id),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp().defaultNow().notNull(),
-});
+}));
 
 export const alertTableRelations = relations(alertTable, ({ one }) => ({
   incident: one(incidentTable, {

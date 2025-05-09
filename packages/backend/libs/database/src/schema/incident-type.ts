@@ -2,8 +2,9 @@ import { relations } from 'drizzle-orm';
 import { integer, jsonb, pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
 import { incidentTypeStatusConditionTable, serviceTable } from '.';
 import { TopLevelCondition } from 'json-rules-engine';
+import { withAtTimestemp } from './utils';
 
-export const incidentTypeTable = pgTable('incident_type', {
+export const incidentTypeTable = pgTable('incident_type', withAtTimestemp({
   id: uuid().defaultRandom().primaryKey(),
   name: varchar({ length: 500 }).notNull(),
   serviceId: uuid()
@@ -13,11 +14,7 @@ export const incidentTypeTable = pgTable('incident_type', {
   order: integer().notNull(), // exp
   title: varchar({ length: 500 }).notNull(), // exp
   description: varchar({ length: 5000 }).notNull(), // exp
-  // createdAt: timestamp().defaultNow().notNull(),
-  // updatedAt: timestamp().defaultNow().notNull(),
-  // updatedBy: uuid().references(() => user.id).notNull(), // updated
-  // createdBy: uuid().references(() => user.id).notNull(), // created
-});
+}));
 
 export const incidentTypeGroupTable = pgTable('incident_type_group', {
   id: uuid().defaultRandom().primaryKey(),
