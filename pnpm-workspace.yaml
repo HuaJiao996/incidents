@@ -1,2 +1,12 @@
 packages:
-  - 'packages/*'
+  - packages/*
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
+ignoredBuiltDependencies:
+  - '@scarf/scarf'
+  - '@swc/core'
+  - esbuild
+  - msgpackr-extract

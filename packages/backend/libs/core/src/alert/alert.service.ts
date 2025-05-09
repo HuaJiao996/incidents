@@ -2,13 +2,13 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { AlertDto } from './dto/alert.dto';
-import { alertTable, GlobalCustomField, ServiceCustomField } from '@libs/database/schema';
 import { get } from 'radash';
 import { DatabaseService } from '@libs/database';
 import { RedisService } from '@libs/redis';
 import { CustomFieldValidationException } from '@libs/common/exceptions/custom-field-validation.exception';
-import { RuleEngine } from '@libs/common/rule-engine/rule-engine';
+import { RuleEngineAdapter } from '@libs/common/rule-engine';
 import { customFieldValidators } from '@libs/common/validators/custom-field.validator';
+import { GlobalCustomField, ServiceCustomField } from '@libs/database/prisma';
 
 @Injectable()
 export class AlertService {
@@ -21,9 +21,7 @@ export class AlertService {
   ) {}
 
   private async checkGlobalCustomField(alertDto: AlertDto) {
-    const globalCustomFields = await this.databaseService
-      .getClient()
-      .query.globalCustomFieldTable.findMany();
+    const globalCustomFields = await this.databaseService.client.globalCustomField.findMany();
     return this.checkCustomField(alertDto, globalCustomFields);
   }
 
@@ -75,29 +73,28 @@ export class AlertService {
         'Global custom field validation failed',
       );
     }
-    const serviceRoutes = await this.databaseService
-      .getClient()
-      .query.serviceRouteTable.findMany({
-        orderBy: (serviceRoute, { asc }) => [asc(serviceRoute.order)],
-      });
+    const serviceRoutes = await this.databaseService.client.serviceRoute.findMany()
 
-    const engine = new RuleEngine();
+    const engine = new RuleEngineAdapter();
     serviceRoutes.forEach((serviceRoute) => {
-      engine.appendRule(
-        serviceRoute.condition,
-        { serviceId: serviceRoute.serviceId },
-        serviceRoute.order,
-      );
+      // 确保 condition 不为空
+      if (serviceRoute.condition) {
+        engine.appendRule(
+          serviceRoute.condition,
+          { serviceId: serviceRoute.serviceId },
+          serviceRoute.order,
+        );
+      }
     });
     const serviceId = await engine
       .run(alertDto)
-      .then(({ events }) => events[0]?.params?.serviceId as string | undefined);
+      .then(({ events }) => events[0]?.params?.serviceId as number | undefined);
     return this.receiveWithServiceId(alertDto, serviceId, false);
   }
 
   async receiveWithServiceId(
     alertDto: AlertDto,
-    serviceId?: string,
+    serviceId?: number,
     checkGlobalCustomField: boolean = true,
   ) {
     if (!serviceId) {
@@ -117,15 +114,15 @@ export class AlertService {
       }
     }
 
-    const service = await this.databaseService
-      .getClient()
-      .query.serviceTable.findFirst({
-        where: (service, { eq }) => eq(service.id, serviceId),
-        with: {
-          customFields: true,
-        },
-      });
-
+    const service = await this.databaseService.client.service.findUnique({
+      where: {
+        id: serviceId
+      },
+      include: {
+        customFields: true
+      }
+    });
+      
     if (!service) {
       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
     }
@@ -141,25 +138,20 @@ export class AlertService {
       );
     }
 
-    const alertData = await this.databaseService
-      .getClient()
-      .insert(alertTable)
-      .values({
+    const alertData = await this.databaseService.client.alert.create({
+      data: {
         content: alertDto.content,
         title: alertDto.title,
-        customFields: alertDto.customFields,
+        customFields: alertDto.customFields ? JSON.parse(JSON.stringify(alertDto.customFields)) : undefined,
         serviceId: serviceId,
-        type: alertDto.type,
-      })
-      .returning({ id: alertTable.id });
+      },
+      select: {
+        id: true
+      }
+    });
 
-    const alertId = alertData[0].id;
+    const alertId = alertData.id;
 
     await this.alertQueue.add('alert', alertId);
-
-    // return {
-    //     alertId,
-    //     serviceId,
-    // }
   }
 }

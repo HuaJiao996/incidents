@@ -1,17 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  Alert,
-  alertTable,
-  childIncidentTable,
-  Incident,
-  IncidentStatus,
-  incidentTable,
-  IncidentType,
-} from '@libs/database/schema';
-import { eq } from 'drizzle-orm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { DatabaseService } from '@libs/database';
+import { Alert, IncidentType } from '@libs/database/prisma';
 
 @Injectable()
 export class IncidentService {
@@ -22,49 +13,42 @@ export class IncidentService {
     private readonly databaseService: DatabaseService,
   ) {}
 
-  async createIncident(
-    alert: Alert,
-    incidentType: IncidentType,
-    groupId: string,
-    status: IncidentStatus = 'triggered',
-  ) {
+  async createIncident(alert: Alert, incidentType: IncidentType) {
     this.logger.log(
       `Create incident: alertId=${alert.id}, incidentTypeId=${incidentType.id}, serviceId=${incidentType.serviceId}`,
     );
-    const [alertId, incidentId] = await this.databaseService
-      .getClient()
-      .transaction(async (tx) => {
-        const insertIncident = await tx
-          .insert(incidentTable)
-          .values({
-            title: alert.title,
-            incidentTypeId: incidentType.id,
-            description: alert.content,
-            incidentTypeGroupId: groupId,
-            status,
-          })
-          .returning();
-
-        const alertId = tx
-          .update(alertTable)
-          .set({
-            incidentId: insertIncident[0].id,
-          })
-          .where(eq(alertTable.id, alert.id))
-          .returning({ id: alertTable.id });
-
-        return [alertId, insertIncident[0].id];
+    
+    // 使用 Prisma 事务创建事件并更新告警
+    const result = await this.databaseService.client.$transaction(async (tx) => {
+      // 创建新事件
+      const incident = await tx.incident.create({
+        data: {
+          title: alert.title,
+          typeId: incidentType.id,
+          description: alert.content,
+          severity: 'HIGH',
+          serviceId: incidentType.serviceId
+        },
       });
 
-    this.logger.log(`Incident created successfully: incidentId=${incidentId}`);
+      // 更新告警，关联到新创建的事件
+      const updatedAlert = await tx.alert.update({
+        where: { id: alert.id },
+        data: { incidentId: incident.id },
+      });
+
+      return { incident, updatedAlert };
+    });
+
+    this.logger.log(`Incident created successfully: incidentId=${result.incident.id}`);
 
     // TODO: 触发事件分配流程
     // await this.assignIncident(incidentId);
 
-    return incidentId;
+    return result.incident.id;
   }
 
-  async resolveIncident(incidentId: string, alertId: string) {
+  async resolveIncident(incidentId: number, alertId: number) {
     this.logger.log(
       `Resolving incident: incidentId=${incidentId}, alertId=${alertId}`,
     );
@@ -72,46 +56,7 @@ export class IncidentService {
     return this.updateIncident(incidentId, alertId, true);
   }
 
-  async createChildIncident(alert: Alert, parentIncident: Incident) {
-    this.logger.log(
-      `Create child incident: alertId=${alert.id}, parentIncident=${parentIncident.id}`,
-    );
-    const [alertId, incidentId] = await this.databaseService
-      .getClient()
-      .transaction(async (tx) => {
-        const childIncident = await tx
-          .insert(incidentTable)
-          .values({
-            title: alert.title,
-            incidentTypeId: parentIncident.incidentTypeId,
-            description: alert.content,
-            incidentTypeGroupId: parentIncident.incidentTypeGroupId,
-            status: 'triggered',
-          })
-          .returning();
-
-        const alertId = await tx
-          .update(alertTable)
-          .set({
-            incidentId: childIncident[0].id,
-          })
-          .where(eq(alertTable.id, alert.id))
-          .returning({ id: alertTable.id });
-
-        await tx.insert(childIncidentTable).values({
-          id: childIncident[0].id,
-          parentId: parentIncident.id,
-        });
-
-        return [alertId, childIncident[0].id];
-      });
-
-    this.logger.log(
-      `Child incident create success: childIncidentId=${incidentId}, parentIncidentId=${parentIncident.id}`,
-    );
-  }
-
-  async updateIncident(incidentId: string, alertId: string, resolved: boolean) {
+  async updateIncident(incidentId: number, alertId: number, resolved: boolean) {
     this.logger.log(
       `Updating incident: incidentId=${incidentId}, alertId=${alertId}, resolved=${resolved}`,
     );
@@ -121,31 +66,20 @@ export class IncidentService {
     };
 
     if (resolved) {
-      updateData.status = 'resolved';
+      updateData.status = 'RESOLVED';
       updateData.resolvedAt = new Date();
     }
 
-    await this.databaseService
-      .getClient()
-      .update(incidentTable)
-      .set(updateData)
-      .where(eq(incidentTable.id, incidentId));
+    // 使用 Prisma 更新事件
+    const updatedIncident = await this.databaseService.client.incident.update({
+      where: { id: incidentId },
+      data: updateData,
+    });
 
     this.logger.log(
       `Incident update success: incidentId=${incidentId}, status=${resolved ? 'resolved' : 'open'}`,
     );
 
     return true;
-  }
-
-  async findOpenIncidentByType(incidentTypeId: string, groupId: string) {
-    return this.databaseService.getClient().query.incidentTable.findFirst({
-      where: (incident, { eq, and, ne }) =>
-        and(
-          ne(incident.status, 'triggered'),
-          eq(incident.incidentTypeId, incidentTypeId),
-          eq(incident.incidentTypeGroupId, groupId),
-        ),
-    });
   }
 }

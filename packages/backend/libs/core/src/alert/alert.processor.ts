@@ -2,11 +2,10 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { DatabaseService } from '@libs/database';
-import { RuleEngine } from '@libs/common/rule-engine/rule-engine';
-import { TopLevelCondition } from 'json-rules-engine';
+import { RuleEngineAdapter } from '@libs/common/rule-engine';
 import { tryit } from 'radash';
-import { Alert, AlertType, IncidentType } from '@libs/database/schema';
 import { IncidentService } from '../incident/incident.service';
+import { Alert, Incident, IncidentStatus, IncidentType } from '@libs/database/prisma';
 
 @Processor('alertQueue')
 export class AlertProcessor extends WorkerHost {
@@ -18,7 +17,7 @@ export class AlertProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<string>) {
+  async process(job: Job<number>) {
     this.logger.log(job.data);
 
     // 获取告警数据
@@ -33,50 +32,46 @@ export class AlertProcessor extends WorkerHost {
       return;
     }
 
-    // 匹配分组
-    const group = await this.matchGroup(alert, matchedIncidentType.id);
-    if (!group) {
-      return;
-    }
-
-    // 确定状态
-    const status = await this.determineStatus(
-      alert,
-      matchedIncidentType.id,
-      group.id,
-    );
-    this.logger.debug(status);
-
     // 处理事件
-    await this.handleIncident(alert, matchedIncidentType, group.id, status);
+    await this.handleIncident(alert, matchedIncidentType);
 
     this.logger.log(`Alert processing completed: ${job.data}`);
     return { success: true };
   }
 
-  private async fetchAlert(alertId: string) {
-    return this.databaseService.getClient().query.alertTable.findFirst({
-      where: (alert, { eq }) => eq(alert.id, alertId),
-      with: {
-        service: {
-          with: {
-            incidentTypes: true,
-          },
-        },
+  private async fetchAlert(alertId: number) {
+    return this.databaseService.client.alert.findUnique({
+      where: {
+        id: alertId
       },
-    });
+      include: {
+        service: {
+          include: {
+            incidentTypes: true
+          }
+        }
+      }
+    })
   }
 
   private async matchIncidentType(
-    alert: Exclude<Awaited<ReturnType<typeof this.fetchAlert>>, undefined>,
+    alert: NonNullable<Awaited<ReturnType<typeof this.fetchAlert>>>,
   ) {
-    const incidentTypeChecker = new RuleEngine();
-    alert.service!.incidentTypes.forEach((incidentType) => {
-      incidentTypeChecker.appendRule(
-        incidentType.condition,
-        { incidentType },
-        incidentType.order,
-      );
+    if (!alert.service) {
+      this.logger.error('Alert service not found');
+      return null;
+    }
+    
+    const incidentTypeChecker = new RuleEngineAdapter();
+    
+    alert.service.incidentTypes.forEach((incidentType) => {
+      if (incidentType.condition) {
+        incidentTypeChecker.appendRule(
+          incidentType.condition,
+          { incidentType },
+          incidentType.priority,
+        );
+      }
     });
 
     const [error, matchedIncidentType] = await tryit(() =>
@@ -84,10 +79,7 @@ export class AlertProcessor extends WorkerHost {
         .run(alert)
         .then(
           ({ events }) =>
-            events[0]?.params?.incidentType as Exclude<
-              typeof alert.service,
-              null
-            >['incidentTypes'][number],
+            events[0]?.params?.incidentType as IncidentType | undefined,
         ),
     )();
 
@@ -106,122 +98,45 @@ export class AlertProcessor extends WorkerHost {
     return matchedIncidentType;
   }
 
-  private async matchGroup(
-    alert: Record<string, unknown>,
-    incidentTypeId: string,
-  ) {
-    const groups = await this.databaseService
-      .getClient()
-      .query.incidentTypeGroupTable.findMany({
-        where: (incidentTypeGroup, { eq }) =>
-          eq(incidentTypeGroup.incidentTypeId, incidentTypeId),
-      });
-
-    const groupChecker = new RuleEngine();
-    groups.forEach((group) => {
-      groupChecker.appendRule(
-        group.condition as TopLevelCondition,
-        { group },
-        group.order,
-      );
-    });
-
-    const group = await groupChecker
-      .run(alert)
-      .then(
-        ({ events }) => events[0]?.params?.group as (typeof groups)[number],
-      );
-
-    if (!group) {
-      this.logger.error('No matching group found');
-      return null; // 处理错误
-    }
-
-    return group;
-  }
-
-  private async determineStatus(
-    alert: { type: AlertType | null },
-    incidentTypeId: string,
-    groupId: string,
-  ) {
-    let status = alert.type;
-    if (!status) {
-      const statusConditions = await this.databaseService
-        .getClient()
-        .query.incidentTypeStatusConditionTable.findMany({
-          where: (incidentTypeStatusCondition, { eq, and }) =>
-            and(
-              eq(incidentTypeStatusCondition.incidentTypeId, incidentTypeId),
-              eq(incidentTypeStatusCondition.groupId, groupId),
-            ),
-        });
-
-      const statusChecker = new RuleEngine();
-      statusConditions.forEach((statusCondition) => {
-        statusChecker.appendRule(
-          statusCondition.condition,
-          { status: statusCondition.status },
-          statusCondition.order,
-        );
-      });
-
-      status = await statusChecker
-        .run(alert)
-        .then(
-          ({ events }) => events[0]?.params?.status as 'trigger' | 'resolve',
-        );
-    }
-
-    return status;
-  }
-
   private async handleIncident(
     alert: Alert,
     incidentType: IncidentType,
-    groupId: string,
-    status: AlertType | null,
   ) {
-    // 根据匹配的 Incident Type 确认当前是否存在未 Resolved 的 Incident
-    const existingIncident = await this.incidentService.findOpenIncidentByType(
-      incidentType.id,
-      groupId,
-    );
+    this.logger.log(`处理告警 ${alert.id} 为事件类型 ${incidentType.name}`);
+    let existingIncident: Incident | undefined
+    if (incidentType.groupCondition) {
+        // 1. 首先检索 IncidentType 下所有非 RESOLVED 状态的 Incident
+        const openIncidents = await this.databaseService.client.incident.findMany({
+          where: {
+            typeId: incidentType.id,
+            status: {
+              not: IncidentStatus.RESOLVED // 查找所有非 RESOLVED 状态的事件
+            }
+          }
+        });
+
+        if (openIncidents.length) {
+          const groupChecker = new RuleEngineAdapter();
+          groupChecker.appendRule(incidentType.groupCondition, {matched: true})
+          for (const openIncident of openIncidents) {
+            const res = await groupChecker.run(openIncident)
+            const matched = !!(res.events[0]?.params?.matched as boolean | undefined);
+            if (matched) {
+              existingIncident = openIncident;
+              break;
+            }
+          }
+        }
+    }
 
     if (existingIncident) {
-      // 存在未解决的事件，将 Alert 数据更新到 Incident 中
-      this.logger.log(
-        `Found unresolved incident: ${existingIncident.id}, updating incident information`,
-      );
-
-      // 根据 Alert 状态决定是否将 Incident 标记为已解决
-      if (status === 'resolve') {
-        // 将 Incident 数据更新为 Resolved
-        await this.incidentService.resolveIncident(
-          existingIncident.id,
-          alert.id,
-        );
-        this.logger.log(
-          `Incident has been marked as resolved: ${existingIncident.id}`,
-        );
-      } else {
-        // 仅更新 Alert 关联，不改变状态
-        await this.incidentService.createChildIncident(alert, existingIncident);
-        this.logger.log(
-          `Incident has been updated with latest alert: ${existingIncident.id}`,
-        );
-      }
-      return;
-    } else {
-      const incidentStatus = status === 'resolve' ? 'resolved' : 'triggered';
-      const incidentId = await this.incidentService.createIncident(
-        alert,
-        incidentType,
-        groupId,
-        incidentStatus,
-      );
-
-      this.logger.log(`New incident created: ${incidentId}`);
+      await this.databaseService.client.alert.update({
+        where: { id: alert.id },
+        data: { incidentId: existingIncident.id }
+      });
+    }else {
+      await this.incidentService.createIncident(alert, incidentType);
     }
+    
   }
 }

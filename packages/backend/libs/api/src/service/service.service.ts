@@ -1,52 +1,47 @@
 import { DatabaseService } from '@libs/database';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
-import { incidentTable, incidentTypeTable, serviceTable } from '@libs/database/schema';
-import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class ServiceService {
   constructor(private readonly databaseService: DatabaseService) {}
+  
   async create(createServiceDto: CreateServiceDto) {
-    const service = await this.databaseService
-      .getClient().transaction(async (tx) => {
-        const service = await tx.insert(serviceTable)
-          .values(createServiceDto)
-          .returning();
+    const service = await this.databaseService.client.$transaction(async (tx) => {
+      const service = await tx.service.create({
+        data: createServiceDto
+      });
 
-        const incidentType = await tx.insert(incidentTypeTable).values({
+      await tx.incidentType.create({
+        data: {
           name: 'Default Incident',
-          serviceId: service[0].id,
-          order: 0,
+          serviceId: service.id,
+          priority: 0,
           description: 'Default Incident',
-          title: 'Default Incident',
-        }).returning();
+        }
+      });
 
-        return service[0];
-      })
+      return service;
+    });
       
     return service;
   }
 
   async findAll() {
-    const services = await this.databaseService
-      .getClient()
-      .query.serviceTable.findMany();
+    const services = await this.databaseService.client.service.findMany();
     return services;
   }
 
   async findOne(id: string) {
-    const service = await this.databaseService
-      .getClient()
-      .query.serviceTable.findFirst({
-        where: (service, { eq }) => eq(service.id, id),
-        with: {
-          incidentTypes: {
-            orderBy: (incidentType, { asc }) => asc(incidentType.order),
-          },
-          customFields: true,
+    const service = await this.databaseService.client.service.findFirst({
+      where: { id: +id },
+      include: {
+        incidentTypes: {
+          orderBy: { priority: 'asc' },
         },
-      });
+        customFields: true,
+      },
+    });
 
     if (!service) {
       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
@@ -55,12 +50,9 @@ export class ServiceService {
   }
 
   update(id: string, updateServiceDto: CreateServiceDto) {
-    const service = this.databaseService
-      .getClient()
-      .update(serviceTable)
-      .set(updateServiceDto)
-      .where(eq(serviceTable.id, id))
-      .returning();
-    return service;
+    return this.databaseService.client.service.update({
+      where: { id: +id },
+      data: updateServiceDto
+    });
   }
 }

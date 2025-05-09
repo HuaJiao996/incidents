@@ -28,13 +28,13 @@ export const baseValidator = (
  * 包含各种类型的验证逻辑
  */
 export const customFieldValidators = {
-  string: (required: boolean, fieldValue?: unknown) =>
+  STRING: (required: boolean, fieldValue?: unknown) =>
     baseValidator(required, fieldValue, isString, 'string'),
 
-  number: (required: boolean, fieldValue?: unknown) =>
+  NUMBER: (required: boolean, fieldValue?: unknown) =>
     baseValidator(required, fieldValue, isNumber, 'number'),
 
-  boolean: (required: boolean, fieldValue?: unknown) =>
+  BOOLEAN: (required: boolean, fieldValue?: unknown) =>
     baseValidator(
       required,
       fieldValue,
@@ -42,7 +42,7 @@ export const customFieldValidators = {
       'boolean',
     ),
 
-  array: (required: boolean, fieldValue?: unknown) => {
+  ARRAY: (required: boolean, fieldValue?: unknown) => {
     // 先检查是否为数组
     const arrayCheck = baseValidator(
       required,
@@ -61,7 +61,24 @@ export const customFieldValidators = {
     return { valid: true };
   },
 
-  enum: (required: boolean, fieldValue?: unknown, enumValues?: unknown[]) => {
+  DATE: (required: boolean, fieldValue?: unknown) => {
+    // 如果值不存在且不是必填，则通过验证
+    if (fieldValue === undefined || fieldValue === null) {
+      return required
+        ? { valid: false, reason: 'Required field is missing' }
+        : { valid: true };
+    }
+
+    // 尝试将值转换为Date对象
+    const date = new Date(fieldValue as string);
+    
+    // 检查日期是否有效
+    return !isNaN(date.getTime())
+      ? { valid: true }
+      : { valid: false, reason: `Value "${fieldValue}" is not a valid date` };
+  },
+
+  ENUM: (required: boolean, fieldValue?: unknown, enumValues?: any) => {
     // 先检查字段值是否存在
     if (fieldValue === undefined || fieldValue === null) {
       return required
@@ -69,17 +86,22 @@ export const customFieldValidators = {
         : { valid: true };
     }
 
+    // 处理enumValues为JSON类型的情况
+    const values = Array.isArray(enumValues) 
+      ? enumValues 
+      : (enumValues ? JSON.parse(JSON.stringify(enumValues)) : []);
+    
     // 检查枚举值列表是否有效
-    if (!Array.isArray(enumValues) || enumValues.length === 0) {
+    if (!Array.isArray(values) || values.length === 0) {
       return { valid: false, reason: 'Invalid enum values list' };
     }
 
     // 检查值是否在枚举列表中
-    return enumValues.includes(fieldValue)
+    return values.includes(fieldValue)
       ? { valid: true }
       : {
           valid: false,
-          reason: `Value "${fieldValue}" is not in allowed enum values [${enumValues.join(', ')}]`,
+          reason: `Value "${fieldValue}" is not in allowed enum values [${values.join(', ')}]`,
         };
   },
 };

@@ -16,6 +16,6 @@ export class AlertController {
     @Param('serviceId') serviceId: string,
     @Body() alertDto: AlertDto,
   ) {
-    return this.alertService.receiveWithServiceId(alertDto, serviceId);
+    return this.alertService.receiveWithServiceId(alertDto, +serviceId);
   }
 }
