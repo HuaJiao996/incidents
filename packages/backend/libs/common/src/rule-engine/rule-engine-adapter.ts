@@ -72,57 +72,42 @@ export class RuleEngineAdapter {
    * @param facts 事实数据
    */
   async run(facts: any): Promise<{ events: RuleEvent[] }> {
-    const events: RuleEvent[] = [];
     const sortedRules = [...this.rules.values()]
       .sort((a, b) => b.priority - a.priority);
     
-    for (const rule of sortedRules) {
-      try {
-        const matched = await rule.engine.evaluate(facts);
-        if (matched) {
-          events.push({
-            type: rule.result.type || RuleEngineAdapter.MATCHED,
-            params: { ...rule.result, ruleId: rule.id }
-          });
+    // 创建一个 Promise 数组，每个 Promise 在匹配时立即返回
+    const rulePromises = sortedRules.map(rule => 
+      new Promise<RuleEvent | null>(async (resolve) => {
+        try {
+          const matched = await rule.engine.evaluate(facts);
+          if (matched) {
+            const event: RuleEvent = {
+              type: rule.result.type || RuleEngineAdapter.MATCHED,
+              params: { ...rule.result, ruleId: rule.id }
+            };
+            resolve(event);
+          }
+          resolve(null);
+        } catch (error) {
+          console.error(`规则执行错误 (${rule.id}):`, error);
+          resolve(null);
         }
-      } catch (error) {
-        console.error(`规则执行错误 (${rule.id}):`, error);
-      }
-    }
-    
-    return { events };
+      })
+    );
+
+    // 使用 Promise.race 获取第一个匹配的规则
+    const firstMatch = await Promise.race(
+      rulePromises.map(async (promise) => {
+        const result = await promise;
+        if (result) {
+          return { events: [result] };
+        }
+        return null;
+      })
+    );
+
+    // 如果有匹配的规则，返回它；否则返回空数组
+    return firstMatch || { events: [] };
   }
   
-  /**
-   * 同步执行所有规则
-   * @param facts 事实数据
-   */
-  runSync(facts: any): { events: RuleEvent[] } {
-    const events: RuleEvent[] = [];
-    const sortedRules = [...this.rules.values()]
-      .sort((a, b) => b.priority - a.priority);
-    
-    for (const rule of sortedRules) {
-      try {
-        const matched = rule.engine.evaluateSync(facts);
-        if (matched) {
-          events.push({
-            type: rule.result.type || RuleEngineAdapter.MATCHED,
-            params: { ...rule.result, ruleId: rule.id }
-          });
-        }
-      } catch (error) {
-        console.error(`规则执行错误 (${rule.id}):`, error);
-      }
-    }
-    
-    return { events };
-  }
-  
-  /**
-   * 清除所有规则
-   */
-  clearRules(): void {
-    this.rules.clear();
-  }
 } 
