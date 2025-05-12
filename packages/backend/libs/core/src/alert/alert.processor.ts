@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { DatabaseService } from '@libs/database';
-import { RuleEngineAdapter } from '@libs/common/rule-engine';
+import { RuleEngine } from '@libs/common/rengine';
 import { tryit } from 'radash';
 import { IncidentService } from '../incident/incident.service';
 import { Alert, Incident, IncidentStatus, IncidentType } from '@libs/database/prisma';
@@ -61,26 +61,21 @@ export class AlertProcessor extends WorkerHost {
       this.logger.error('Alert service not found');
       return null;
     }
-    
-    const incidentTypeChecker = new RuleEngineAdapter();
-    
+
+    const incidentTypeChecker = new RuleEngine<IncidentType>();
+
     alert.service.incidentTypes.forEach((incidentType) => {
       if (incidentType.condition) {
         incidentTypeChecker.appendRule(
           incidentType.condition,
-          { incidentType },
+          incidentType,
           incidentType.priority,
         );
       }
     });
 
     const [error, matchedIncidentType] = await tryit(() =>
-      incidentTypeChecker
-        .run(alert)
-        .then(
-          ({ events }) =>
-            events[0]?.params?.incidentType as IncidentType | undefined,
-        ),
+      incidentTypeChecker.run(alert)
     )();
 
     if (error) {
@@ -105,28 +100,27 @@ export class AlertProcessor extends WorkerHost {
     this.logger.log(`处理告警 ${alert.id} 为事件类型 ${incidentType.name}`);
     let existingIncident: Incident | undefined
     if (incidentType.groupCondition) {
-        // 1. 首先检索 IncidentType 下所有非 RESOLVED 状态的 Incident
-        const openIncidents = await this.databaseService.client.incident.findMany({
-          where: {
-            typeId: incidentType.id,
-            status: {
-              not: IncidentStatus.RESOLVED // 查找所有非 RESOLVED 状态的事件
-            }
-          }
-        });
-
-        if (openIncidents.length) {
-          const groupChecker = new RuleEngineAdapter();
-          groupChecker.appendRule(incidentType.groupCondition, {matched: true})
-          for (const openIncident of openIncidents) {
-            const res = await groupChecker.run(openIncident)
-            const matched = !!(res.events[0]?.params?.matched as boolean | undefined);
-            if (matched) {
-              existingIncident = openIncident;
-              break;
-            }
+      // 1. 首先检索 IncidentType 下所有非 RESOLVED 状态的 Incident
+      const openIncidents = await this.databaseService.client.incident.findMany({
+        where: {
+          typeId: incidentType.id,
+          status: {
+            not: IncidentStatus.RESOLVED // 查找所有非 RESOLVED 状态的事件
           }
         }
+      });
+
+      if (openIncidents.length) {
+        const groupChecker = new RuleEngine<true>();
+        groupChecker.appendRule(incidentType.groupCondition, true)
+        for (const openIncident of openIncidents) {
+          const matched = await groupChecker.run(openIncident)
+          if (matched) {
+            existingIncident = openIncident;
+            break;
+          }
+        }
+      }
     }
 
     if (existingIncident) {
@@ -134,9 +128,9 @@ export class AlertProcessor extends WorkerHost {
         where: { id: alert.id },
         data: { incidentId: existingIncident.id }
       });
-    }else {
+    } else {
       await this.incidentService.createIncident(alert, incidentType);
     }
-    
+
   }
 }

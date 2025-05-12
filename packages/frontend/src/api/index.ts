@@ -4,7 +4,7 @@ import vueHook from 'alova/vue';
 import { createApis, withConfigType } from './createApis';
 
 export const alovaInstance = createAlova({
-  baseURL: '',
+  baseURL: 'http://localhost:3000',
   statesHook: vueHook,
   requestAdapter: fetchAdapter(),
   beforeRequest: method => {},

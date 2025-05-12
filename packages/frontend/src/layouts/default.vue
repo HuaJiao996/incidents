@@ -1,243 +1,124 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import LanguageSwitcher from '../components/LanguageSwitcher.vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import LanguageSwitcher from '../components/LanguageSwitcher.vue';
+import Menubar from 'primevue/menubar';
+import Button from 'primevue/button';
+import logo from '../assets/logo.svg';
+import { useRouter } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 
-// 侧边栏状态控制
-const sidebarVisible = ref(true);
-const toggleSidebar = () => {
-  sidebarVisible.value = !sidebarVisible.value;
-};
+const router = useRouter();
+const { t } = useI18n();
 
-// 模拟菜单项
-const menuItems = [
-  { label: '仪表盘', icon: 'pi pi-home', to: '/dashboard' },
-  {
-    label: '事件管理',
-    icon: 'pi pi-exclamation-circle',
-    items: [
-      { label: '事件列表', to: '/incident' },
-      { label: '创建事件', to: '/incident/create' }
-    ]
-  },
-  { label: '告警管理', icon: 'pi pi-bell', to: '/alert' },
-  { label: '服务管理', icon: 'pi pi-server', to: '/service' },
-  { label: '用户管理', icon: 'pi pi-user', to: '/user' }
-];
+interface MenuItem {
+  label: string;
+  icon: string;
+  to: string;
+  order: number;
+}
+
+const menuItems = computed<MenuItem[]>(() => {
+  const routes = router.getRoutes();
+  return routes
+    .filter((route) => route.meta?.menu?.title)
+    .map(route => ({
+      label: t(`menu.${route.meta.menu!.title}`),
+      icon: route.meta.menu!.icon || getDefaultIcon(route.path),
+      to: route.path,
+      order: route.meta.menu!.order || 99
+    }))
+    .sort((a, b) => a.order - b.order);
+});
+
+function getDefaultIcon(path: string): string {
+  const iconMap: Record<string, string> = {
+    '/': 'pi pi-home',
+    '/incident': 'pi pi-exclamation-triangle',
+    '/alert': 'pi pi-bell',
+    '/service': 'pi pi-cog',
+    '/settings': 'pi pi-sliders-h'
+  };
+  return iconMap[path] || 'pi pi-file';
+}
 </script>
 
 <template>
-  <div class="layout-wrapper">
+  <div class="min-h-screen bg-gray-50">
     <!-- 顶部导航栏 -->
-    <header class="layout-topbar">
-      <div class="layout-topbar-left">
-        <button class="menu-button p-link" @click="toggleSidebar">
-          <i class="pi pi-bars"></i>
-        </button>
-        <div class="layout-topbar-logo">
-          <span>Incidents</span>
-        </div>
-      </div>
-      <div class="layout-topbar-right">
-        <LanguageSwitcher class="language-switcher-topbar" />
-        <button class="p-link">
-          <i class="pi pi-bell"></i>
-        </button>
-        <button class="p-link">
-          <i class="pi pi-user"></i>
-        </button>
-      </div>
-    </header>
-
-    <!-- 侧边菜单 -->
-    <div class="layout-sidebar" :class="{ 'layout-sidebar-active': sidebarVisible }">
-      <div class="layout-menu-container">
-        <ul class="layout-menu">
-          <li v-for="(item, index) in menuItems" :key="index" class="layout-menuitem">
-            <router-link :to="item.to" class="layout-menuitem-link">
-              <i :class="item.icon"></i>
-              <span>{{ item.label }}</span>
+    <div class="fixed top-0 left-0 w-full h-16 bg-white shadow-sm z-50">
+      <div class="flex justify-between items-center w-full px-4 h-full">
+        <Menubar :model="menuItems" class="border-none bg-transparent flex-1">
+          <template #start>
+            <div class="flex items-center mr-4">
+              <img :src="logo" alt="Incidents Logo" class="w-8 h-8" />
+              <span class="ml-2 text-xl font-bold text-blue-500">Incidents</span>
+            </div>
+          </template>
+          <template #item="{ item }">
+            <router-link 
+              v-if="item.to" 
+              :to="item.to" 
+              v-slot="{ href, navigate }" 
+              custom
+            >
+              <a 
+                :href="href" 
+                @click="navigate"
+                class="flex items-center px-5 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+              >
+                <i :class="[item.icon, 'mr-2']"></i>
+                <span>{{ item.label }}</span>
+              </a>
             </router-link>
-          </li>
-        </ul>
+          </template>
+          <template #end>
+            <div class="flex items-center gap-4">
+              <!-- <span class="relative">
+                <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <InputText placeholder="搜索关键词" class="pl-10 py-2 text-sm rounded-lg border border-gray-200" />
+              </span> -->
+              <div class="flex items-center gap-2">
+                <LanguageSwitcher />
+                <Button icon="pi pi-user" class="p-button-text !w-10 !h-10 !rounded-full hover:!bg-gray-100" />
+              </div>
+            </div>
+          </template>
+        </Menubar>
       </div>
     </div>
 
     <!-- 主内容区域 -->
-    <div class="layout-main">
-      <div class="layout-content">
-        <RouterView />
-      </div>
+    <div class="pt-16 p-8">
+      <RouterView />
     </div>
   </div>
 </template>
 
-<style scoped>
-.layout-wrapper {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--surface-ground, #f8f9fa);
+<style>
+.p-menubar {
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
 }
 
-.language-switcher-topbar {
-  margin: 0;
-  padding: 0;
-  border: none;
+.p-menubar-root-list {
+  gap: 0.5rem !important;
 }
 
-.layout-topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4rem;
-  padding: 0 2rem;
-  background-color: var(--surface-card, white);
-  color: var(--text-color, #495057);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  z-index: 999;
+.p-menuitem-link {
+  padding: 0.75rem 1.25rem !important;
 }
 
-.layout-topbar-left {
-  display: flex;
-  align-items: center;
+.p-button.p-button-text {
+  background: transparent;
+  color: var(--text-color);
+  border-color: transparent;
 }
 
-.layout-topbar-logo {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-left: 1rem;
-}
-
-.layout-topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.language-switcher-topbar :deep(.language-switcher) {
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.language-switcher-topbar :deep(.language-options) {
-  display: flex;
-  gap: 5px;
-  margin: 0;
-}
-
-.language-switcher-topbar :deep(h3) {
-  display: none;
-}
-
-.language-switcher-topbar :deep(button) {
-  padding: 3px 8px;
-  font-size: 0.8rem;
-  background-color: transparent;
-  border: 1px solid var(--surface-border, #dee2e6);
-  border-radius: 4px;
-}
-
-.menu-button,
-.p-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  background-color: transparent;
-  border: none;
-  color: var(--text-color, #495057);
-}
-
-.menu-button:hover,
-.p-link:hover {
-  background-color: var(--surface-hover, #e9ecef);
-}
-
-.layout-sidebar {
-  position: fixed;
-  top: 4rem;
-  left: 0;
-  width: 250px;
-  height: calc(100vh - 4rem);
-  background-color: var(--surface-overlay, white);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-  z-index: 998;
-  transition: transform 0.2s, left 0.2s;
-  overflow-y: auto;
-}
-
-.layout-sidebar:not(.layout-sidebar-active) {
-  transform: translateX(-100%);
-}
-
-.layout-menu-container {
-  padding: 1.5rem 0;
-}
-
-.layout-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.layout-menuitem {
-  padding: 0.5rem 1.5rem;
-}
-
-.layout-menuitem-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: var(--text-color, #495057);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  transition: background-color 0.2s;
-}
-
-.layout-menuitem-link:hover {
-  background-color: var(--surface-hover, #e9ecef);
-}
-
-.layout-menuitem-link i {
-  margin-right: 0.5rem;
-}
-
-.layout-main {
-  margin-top: 4rem;
-  margin-left: 250px;
-  min-height: calc(100vh - 4rem);
-  padding: 2rem;
-  transition: margin-left 0.2s;
-}
-
-.layout-sidebar:not(.layout-sidebar-active) + .layout-main {
-  margin-left: 0;
-}
-
-.layout-content {
-  background-color: var(--surface-card, white);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-@media (max-width: 991px) {
-  .layout-sidebar {
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  }
-
-  .layout-main {
-    margin-left: 0;
-  }
+.p-button.p-button-text:enabled:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-color);
+  border-color: transparent;
 }
 </style>

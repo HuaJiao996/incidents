@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import Dropdown from 'primevue/dropdown';
+import Calendar from 'primevue/calendar';
+import InputText from 'primevue/inputtext';
 
 const { t } = useI18n();
 
@@ -8,8 +14,10 @@ const { t } = useI18n();
 interface Incident {
   id: string;
   title: string;
-  status: 'open' | 'closed' | 'in_progress';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: string;
+  assignee: string;
+  type: string;
+  service: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,30 +25,83 @@ interface Incident {
 // 模拟数据
 const incidents = ref<Incident[]>([
   {
-    id: '1',
-    title: '服务器CPU使用率过高',
-    status: 'open',
-    severity: 'high',
-    createdAt: '2023-10-15T08:30:00Z',
-    updatedAt: '2023-10-15T09:15:00Z'
+    id: '#2023001',
+    title: '数据库连接异常',
+    status: '已触发',
+    assignee: '刘志强',
+    createdAt: '2023-10-27 14:30',
+    updatedAt: '2023-10-27 15:45',
+    service: '数据库服务',
+    type: '系统异常'
   },
   {
-    id: '2',
-    title: '数据库连接失败',
-    status: 'in_progress',
-    severity: 'critical',
-    createdAt: '2023-10-14T14:20:00Z',
-    updatedAt: '2023-10-14T16:45:00Z'
+    id: '#2023002',
+    title: 'API 响应超时',
+    status: '处理中',
+    assignee: '张雨萱',
+    createdAt: '2023-10-27 10:15',
+    updatedAt: '2023-10-27 11:30',
+    service: 'API 网关',
+    type: '性能问题'
   },
   {
-    id: '3',
-    title: '网站响应缓慢',
-    status: 'closed',
-    severity: 'medium',
-    createdAt: '2023-10-10T11:05:00Z',
-    updatedAt: '2023-10-12T13:30:00Z'
+    id: '#2023003',
+    title: '服务器 CPU 使用率过高',
+    status: '已解决',
+    assignee: '王建国',
+    createdAt: '2023-10-26 16:20',
+    updatedAt: '2023-10-27 09:15',
+    service: '计算服务',
+    type: '资源告警'
   }
 ]);
+
+// 筛选选项
+const statusOptions = ref([
+  { label: t('incident.status.all'), value: '' },
+  { label: t('incident.status.triggered'), value: '已触发' },
+  { label: t('incident.status.processing'), value: '处理中' },
+  { label: t('incident.status.resolved'), value: '已解决' }
+]);
+
+const assigneeOptions = ref([
+  { label: '全部负责人', value: '' },
+  { label: '刘志强', value: '刘志强' },
+  { label: '张雨萱', value: '张雨萱' },
+  { label: '王建国', value: '王建国' }
+]);
+
+const typeOptions = ref([
+  { label: '全部类型', value: '' },
+  { label: '系统异常', value: '系统异常' },
+  { label: '性能问题', value: '性能问题' },
+  { label: '资源告警', value: '资源告警' }
+]);
+
+const serviceOptions = ref([
+  { label: '全部服务', value: '' },
+  { label: '数据库服务', value: '数据库服务' },
+  { label: 'API 网关', value: 'API 网关' },
+  { label: '计算服务', value: '计算服务' }
+]);
+
+// 筛选条件
+const filters = ref({
+  status: '',
+  assignee: '',
+  type: '',
+  service: '',
+  dateRange: null,
+  search: ''
+});
+
+// 排序
+const sortField = ref('createdAt');
+const sortOrder = ref(-1);
+
+// 分页
+const totalRecords = ref(50);
+const first = ref(0);
 
 // 加载数据函数
 const loading = ref(false);
@@ -67,9 +128,9 @@ onMounted(() => {
 // 获取状态对应的样式类
 const getStatusClass = (status: string) => {
   switch (status) {
-    case 'open': return 'status-open';
-    case 'in_progress': return 'status-in-progress';
-    case 'closed': return 'status-closed';
+    case '已触发': return 'bg-red-50 text-red-600';
+    case '处理中': return 'bg-yellow-50 text-yellow-600';
+    case '已解决': return 'bg-green-50 text-green-600';
     default: return '';
   }
 };
@@ -90,189 +151,126 @@ const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString();
 };
+
+// 定义路由 meta
+definePage({
+  meta: {
+    menu: {
+      title: 'incident',
+      icon: 'pi pi-exclamation-triangle',
+      order: 2
+    }
+  }
+})
 </script>
 
 <template>
-  <div class="incidents-page">
-    <div class="page-header">
-      <h1>事件列表</h1>
-      <button class="refresh-button" @click="loadIncidents" :disabled="loading">
-        <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
-        刷新
-      </button>
-    </div>
-
-    <div class="incidents-list" v-if="incidents.length > 0">
-      <div class="incident-card" v-for="incident in incidents" :key="incident.id">
-        <div class="incident-header">
-          <h3>
-            <router-link :to="`/incident/${incident.id}`">{{ incident.title }}</router-link>
-          </h3>
-          <div class="incident-meta">
-            <span class="incident-id">#{{ incident.id }}</span>
-            <span class="incident-status" :class="getStatusClass(incident.status)">
-              {{ incident.status === 'open' ? '未解决' : incident.status === 'in_progress' ? '处理中' : '已解决' }}
-            </span>
-            <span class="incident-severity" :class="getSeverityClass(incident.severity)">
-              {{
-                incident.severity === 'low' ? '低' :
-                incident.severity === 'medium' ? '中' :
-                incident.severity === 'high' ? '高' : '严重'
-              }}
-            </span>
-          </div>
-        </div>
-        <div class="incident-times">
-          <div>创建时间: {{ formatDate(incident.createdAt) }}</div>
-          <div>更新时间: {{ formatDate(incident.updatedAt) }}</div>
-        </div>
+  <div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-semibold">故障事件列表</h1>
+      <div class="flex gap-2">
+        <Button label="批量分配" icon="pi pi-users" class="p-button-outlined" />
+        <Button label="批量解决" icon="pi pi-check" severity="success" />
       </div>
     </div>
 
-    <div class="empty-state" v-else-if="!loading">
-      <i class="pi pi-info-circle"></i>
-      <p>暂无事件记录</p>
+    <!-- 筛选栏 -->
+    <div class="grid grid-cols-6 gap-4 mb-6">
+      <Dropdown v-model="filters.status" :options="statusOptions" optionLabel="label" optionValue="value"
+        placeholder="状态" class="w-full" />
+      <Dropdown v-model="filters.assignee" :options="assigneeOptions" optionLabel="label" optionValue="value"
+        placeholder="负责人" class="w-full" />
+      <Dropdown v-model="filters.type" :options="typeOptions" optionLabel="label" optionValue="value"
+        placeholder="类型" class="w-full" />
+      <Dropdown v-model="filters.service" :options="serviceOptions" optionLabel="label" optionValue="value"
+        placeholder="服务" class="w-full" />
+      <Calendar v-model="filters.dateRange" selectionMode="range" placeholder="时间范围"
+        class="w-full" showIcon />
+      <span class="p-input-icon-left w-full">
+        <i class="pi pi-search" />
+        <InputText v-model="filters.search" placeholder="搜索..." class="w-full" />
+      </span>
     </div>
 
-    <div class="loading-state" v-if="loading">
-      <i class="pi pi-spinner pi-spin"></i>
-      <p>加载中...</p>
+    <!-- 排序标签 -->
+    <div class="flex gap-2 mb-4">
+      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'createdAt' }">
+        创建时间
+        <i class="pi pi-angle-down ml-1" v-if="sortField === 'createdAt' && sortOrder === 1"></i>
+        <i class="pi pi-angle-up ml-1" v-if="sortField === 'createdAt' && sortOrder === -1"></i>
+      </Button>
+      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'updatedAt' }">
+        更新时间
+        <i class="pi pi-angle-down ml-1" v-if="sortField === 'updatedAt' && sortOrder === 1"></i>
+        <i class="pi pi-angle-up ml-1" v-if="sortField === 'updatedAt' && sortOrder === -1"></i>
+      </Button>
+      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'status' }">
+        状态
+        <i class="pi pi-angle-down ml-1" v-if="sortField === 'status' && sortOrder === 1"></i>
+        <i class="pi pi-angle-up ml-1" v-if="sortField === 'status' && sortOrder === -1"></i>
+      </Button>
     </div>
+
+    <!-- 数据表格 -->
+    <DataTable :value="incidents" class="p-datatable-sm" responsiveLayout="scroll"
+      :rows="10" :totalRecords="totalRecords" :first="first"
+      stripedRows showGridlines>
+      <Column field="id" header="ID" />
+      <Column field="title" header="标题" />
+      <Column field="status" header="状态">
+        <template #body="{ data }">
+          <span :class="['px-2 py-1 rounded text-sm', getStatusClass(data.status)]">
+            {{ data.status }}
+          </span>
+        </template>
+      </Column>
+      <Column field="assignee" header="负责人" />
+      <Column field="createdAt" header="创建时间" />
+      <Column field="updatedAt" header="更新时间" />
+      <Column field="service" header="服务" />
+      <Column field="type" header="类型" />
+      <Column header="操作" :exportable="false" style="min-width:8rem">
+        <template #body>
+          <div class="flex gap-2">
+            <Button icon="pi pi-eye" class="p-button-text p-button-sm" />
+            <Button icon="pi pi-user" class="p-button-text p-button-sm" />
+            <Button icon="pi pi-check" class="p-button-text p-button-sm" />
+          </div>
+        </template>
+      </Column>
+    </DataTable>
   </div>
 </template>
 
 <style scoped>
-.incidents-page {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+:deep(.p-dropdown) {
+  width: 100%;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+:deep(.p-calendar) {
+  width: 100%;
 }
 
-.refresh-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
+:deep(.p-datatable-sm) {
+  font-size: 0.875rem;
 }
 
-.refresh-button:hover {
-  background-color: #e0e0e0;
+:deep(.p-datatable-sm .p-datatable-thead > tr > th) {
+  padding: 0.5rem 1rem;
+  background-color: #f8f9fa;
+  font-weight: 600;
 }
 
-.refresh-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+:deep(.p-datatable-sm .p-datatable-tbody > tr > td) {
+  padding: 0.5rem 1rem;
 }
 
-.incidents-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+:deep(.p-button-sm) {
+  padding: 0.25rem;
+  font-size: 0.875rem;
 }
 
-.incident-card {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 15px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.incident-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-
-.incident-header h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.incident-meta {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.incident-id {
-  color: #666;
-  font-size: 14px;
-}
-
-.incident-status, .incident-severity {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.status-open {
-  background-color: #ffecb3;
-  color: #856404;
-}
-
-.status-in-progress {
-  background-color: #b3e0ff;
-  color: #004085;
-}
-
-.status-closed {
-  background-color: #c3e6cb;
-  color: #155724;
-}
-
-.severity-low {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.severity-medium {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.severity-high {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.severity-critical {
-  background-color: #dc3545;
-  color: white;
-}
-
-.incident-times {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #666;
-}
-
-.empty-state, .loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-  color: #666;
-}
-
-.empty-state i, .loading-state i {
-  font-size: 48px;
-  margin-bottom: 16px;
-  color: #ccc;
+:deep(.p-button-sm .p-button-icon) {
+  font-size: 0.875rem;
 }
 </style>

@@ -1,72 +1,60 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 
 const { t } = useI18n();
 
-// 定义服务数据结构
+definePage({
+  meta: {
+    menu: {
+      title: 'service',
+      icon: 'pi pi-server',
+      order: 4
+    },
+  }
+})
+
 interface Service {
-  id: string;
+  id: number;
   name: string;
-  status: 'healthy' | 'warning' | 'critical' | 'maintenance';
-  type: 'web' | 'database' | 'api' | 'infrastructure';
-  lastChecked: string;
-  uptime: string;
+  description: string;
+  createdAt: string;
 }
 
 // 模拟数据
 const services = ref<Service[]>([
   {
-    id: '1',
-    name: '用户认证服务',
-    status: 'healthy',
-    type: 'api',
-    lastChecked: '2023-10-15T10:30:00Z',
-    uptime: '99.98%'
+    id: 1,
+    name: 'Payment Service',
+    description: 'Handles all payment processing and transactions',
+    createdAt: '2024-03-20 10:30:00'
   },
   {
-    id: '2',
-    name: '主数据库',
-    status: 'warning',
-    type: 'database',
-    lastChecked: '2023-10-15T10:25:00Z',
-    uptime: '99.5%'
+    id: 2,
+    name: 'Order Service',
+    description: 'Manages order creation and fulfillment',
+    createdAt: '2024-03-20 09:15:00'
   },
   {
-    id: '3',
-    name: '网站前端',
-    status: 'healthy',
-    type: 'web',
-    lastChecked: '2023-10-15T10:28:00Z',
-    uptime: '99.9%'
-  },
-  {
-    id: '4',
-    name: '文件存储服务',
-    status: 'maintenance',
-    type: 'infrastructure',
-    lastChecked: '2023-10-15T09:15:00Z',
-    uptime: '98.7%'
-  },
-  {
-    id: '5',
-    name: '消息队列',
-    status: 'critical',
-    type: 'infrastructure',
-    lastChecked: '2023-10-15T10:20:00Z',
-    uptime: '95.2%'
+    id: 3,
+    name: 'Auth Service',
+    description: 'Provides authentication and authorization',
+    createdAt: '2024-03-20 08:00:00'
   }
 ]);
 
-// 加载数据函数
+// 搜索
+const searchQuery = ref('');
+
+// 加载数据
 const loading = ref(false);
 const loadServices = async () => {
   loading.value = true;
   try {
-    // 这里应该是API调用，现在使用模拟数据
-    // const response = await fetch('/api/services');
-    // services.value = await response.json();
-    // 模拟加载延迟
     await new Promise(resolve => setTimeout(resolve, 500));
   } catch (error) {
     console.error('加载服务列表失败:', error);
@@ -75,211 +63,72 @@ const loadServices = async () => {
   }
 };
 
-// 页面加载时获取数据
 onMounted(() => {
   loadServices();
 });
 
-// 获取状态对应的样式类
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'healthy': return 'status-healthy';
-    case 'warning': return 'status-warning';
-    case 'critical': return 'status-critical';
-    case 'maintenance': return 'status-maintenance';
-    default: return '';
-  }
+// 添加新服务
+const addNewService = () => {
+  // 实现添加新服务的逻辑
 };
 
-// 获取服务类型对应的图标
-const getTypeIcon = (type: string) => {
-  switch (type) {
-    case 'web': return 'pi-globe';
-    case 'database': return 'pi-database';
-    case 'api': return 'pi-server';
-    case 'infrastructure': return 'pi-cog';
-    default: return 'pi-circle';
-  }
+// 操作按钮
+const onView = (service: Service) => {
+  // 实现查看服务详情的逻辑
 };
 
-// 格式化日期
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleString();
+const onEdit = (service: Service) => {
+  // 实现编辑服务的逻辑
+};
+
+const onDelete = (service: Service) => {
+  // 实现删除服务的逻辑
 };
 </script>
 
 <template>
-  <div class="services-page">
-    <div class="page-header">
-      <h1>服务列表</h1>
-      <Button
-        label="刷新"
-        icon="pi pi-refresh"
-        :loading="loading"
-        @click="loadServices"
-        severity="secondary"
-      />
+  <div class="space-y-4">
+    <!-- 顶部操作栏 -->
+    <div class="flex justify-between items-center">
+      <Button icon="pi pi-plus" :label="t('service.create')" />
+      <span class="p-input-icon-left">
+        <i class="pi pi-search" />
+        <InputText v-model="searchQuery" :placeholder="t('service.searchPlaceholder')" class="w-64" />
+      </span>
     </div>
 
-    <div class="services-list" v-if="services.length > 0">
-      <div class="service-card" v-for="service in services" :key="service.id">
-        <div class="service-header">
-          <div class="service-title">
-            <i class="pi" :class="'pi-' + getTypeIcon(service.type)"></i>
-            <h3>
-              <router-link :to="`/service/${service.id}`">{{ service.name }}</router-link>
-            </h3>
+    <!-- 数据表格 -->
+    <DataTable
+      :value="services"
+      :loading="loading"
+      dataKey="id"
+      stripedRows
+      showGridlines
+      class="p-datatable-sm"
+    >
+      <Column field="id" header="ID" style="width: 8%"></Column>
+      <Column field="name" :header="t('service.name')" style="width: 20%"></Column>
+      <Column field="description" :header="t('service.description')" style="width: 52%"></Column>
+      <Column field="createdAt" :header="t('common.createTime')" style="width: 12%"></Column>
+      <Column :header="t('common.actions')" style="width: 8%">
+        <template #body>
+          <div class="flex space-x-1">
+            <Button icon="pi pi-eye" class="p-button-text p-button-sm" :aria-label="t('common.view')" />
+            <Button icon="pi pi-pencil" class="p-button-text p-button-sm" :aria-label="t('common.edit')" />
+            <Button icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" :aria-label="t('common.delete')" />
           </div>
-          <div class="service-status" :class="getStatusClass(service.status)">
-            {{
-              service.status === 'healthy' ? '正常' :
-              service.status === 'warning' ? '警告' :
-              service.status === 'critical' ? '严重' : '维护中'
-            }}
-          </div>
-        </div>
-        <div class="service-info">
-          <div class="info-item">
-            <span class="label">类型:</span>
-            <span>{{
-              service.type === 'web' ? '网站' :
-              service.type === 'database' ? '数据库' :
-              service.type === 'api' ? 'API服务' : '基础设施'
-            }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">上次检查:</span>
-            <span>{{ formatDate(service.lastChecked) }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">可用率:</span>
-            <span>{{ service.uptime }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="empty-state" v-else-if="!loading">
-      <i class="pi pi-info-circle"></i>
-      <p>暂无服务记录</p>
-    </div>
-
-    <div class="loading-state" v-if="loading">
-      <i class="pi pi-spinner pi-spin"></i>
-      <p>加载中...</p>
-    </div>
+        </template>
+      </Column>
+    </DataTable>
   </div>
 </template>
 
 <style scoped>
-.services-page {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+.p-button-sm.p-button-text {
+  padding: 0.25rem;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-
-
-.services-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.service-card {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 15px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.service-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.service-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.service-title i {
-  font-size: 18px;
-  color: #666;
-}
-
-.service-title h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.service-status {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.status-healthy {
-  background-color: #c3e6cb;
-  color: #155724;
-}
-
-.status-warning {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.status-critical {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.status-maintenance {
-  background-color: #d1ecf1;
-  color: #0c5460;
-}
-
-.service-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.info-item {
-  display: flex;
-  gap: 5px;
-}
-
-.info-item .label {
-  font-weight: 500;
-  color: #666;
-}
-
-.empty-state, .loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-  color: #666;
-}
-
-.empty-state i, .loading-state i {
-  font-size: 48px;
-  margin-bottom: 16px;
-  color: #ccc;
+.p-button-sm.p-button-text .p-button-icon {
+  font-size: 1rem;
 }
 </style>

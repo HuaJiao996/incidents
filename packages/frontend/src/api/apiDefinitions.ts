@@ -2,7 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * API - version 1.0
+ *  - version 1.0.0
  *
  *
  *
@@ -17,7 +17,31 @@
  * **Do not edit the file manually.**
  */
 export default {
-  'auth.login': ['POST', '/auth/login'],
   'alert.receive': ['POST', '/alert'],
-  'alert.receiveWithServiceId': ['POST', '/alert/{serviceId}']
+  'alert.findAll': ['GET', '/alert'],
+  'alert.receiveWithServiceId': ['POST', '/alert/{serviceId}'],
+  'service.create': ['POST', '/api/service'],
+  'service.findAll': ['GET', '/api/service'],
+  'service.findOne': ['GET', '/api/service/{id}'],
+  'service.update': ['PATCH', '/api/service/{id}'],
+  'alert.findOne': ['GET', '/alert/{id}'],
+  'incident.create': ['POST', '/incident'],
+  'incident.findAll': ['GET', '/incident'],
+  'incident.findOne': ['GET', '/incident/{id}'],
+  'incident.update': ['PATCH', '/incident/{id}'],
+  'incidenttype.create': ['POST', '/incident-type/{serviceId}'],
+  'incidenttype.findAll': ['GET', '/incident-type/{serviceId}'],
+  'incidenttype.findOne': ['GET', '/incident-type/{serviceId}/{id}'],
+  'incidenttype.update': ['PATCH', '/incident-type/{serviceId}/{id}'],
+  'incidenttype.remove': ['DELETE', '/incident-type/{serviceId}/{id}'],
+  'serviceroute.create': ['POST', '/service-route'],
+  'serviceroute.findAll': ['GET', '/service-route'],
+  'serviceroute.findOne': ['GET', '/service-route/{id}'],
+  'serviceroute.update': ['PATCH', '/service-route/{id}'],
+  'serviceroute.remove': ['DELETE', '/service-route/{id}'],
+  'globalcustomfield.create': ['POST', '/global-custom-field'],
+  'globalcustomfield.findAll': ['GET', '/global-custom-field'],
+  'globalcustomfield.findOne': ['GET', '/global-custom-field/{id}'],
+  'globalcustomfield.update': ['PATCH', '/global-custom-field/{id}'],
+  'globalcustomfield.remove': ['DELETE', '/global-custom-field/{id}']
 };

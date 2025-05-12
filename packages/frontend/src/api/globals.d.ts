@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * API - version 1.0
+ *  - version 1.0.0
  *
  *
  *
@@ -98,28 +98,59 @@ export type AlertDto = {
    * [required]
    */
   content: string;
-  type?: 'trigger' | 'resolve';
-  customFields?: object;
+  /**
+   * [required]
+   */
+  type: 'trigger' | 'resolve';
+  customFields?: Record<string, unknown>;
 };
+export type AlertResponseDto = {
+  /**
+   * [required]
+   */
+  id: number;
+  /**
+   * [required]
+   */
+  title: string;
+  /**
+   * [required]
+   */
+  content: string;
+  /**
+   * [required]
+   */
+  incidentId: number;
+  /**
+   * [required]
+   */
+  createdAt: string;
+  /**
+   * [required]
+   */
+  updatedAt: string;
+  /**
+   * [required]
+   */
+  service: object;
+};
+export type CreateServiceDto = {
+  /**
+   * [required]
+   */
+  name: string;
+  description?: string;
+};
+export type CreateIncidentDto = object;
+export type UpdateIncidentDto = object;
+export type CreateIncidentTypeDto = object;
+export type UpdateIncidentTypeDto = object;
+export type CreateServiceRouteDto = object;
+export type UpdateServiceRouteDto = object;
+export type CreateGlobalCustomFieldDto = object;
+export type UpdateGlobalCustomFieldDto = object;
 declare global {
   interface Apis {
-    auth: {
-      /**
-       * ---
-       *
-       * [POST]
-       *
-       * **path:** /auth/login
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = unknown
-       * ```
-       */
-      login<Config extends Alova2MethodConfig<unknown>>(config?: Config): Alova2Method<unknown, 'auth.login', Config>;
-    };
     alert: {
       /**
        * ---
@@ -137,8 +168,9 @@ declare global {
        *   title: string
        *   // [required]
        *   content: string
-       *   type?: 'trigger' | 'resolve'
-       *   customFields?: object
+       *   // [required]
+       *   type: 'trigger' | 'resolve'
+       *   customFields?: Record<string, unknown>
        * }
        * ```
        *
@@ -156,6 +188,38 @@ declare global {
       >(
         config: Config
       ): Alova2Method<unknown, 'alert.receive', Config>;
+      /**
+       * ---
+       *
+       * [GET] 获取所有告警
+       *
+       * **path:** /alert
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = Array<{
+       *   // [required]
+       *   id: number
+       *   // [required]
+       *   title: string
+       *   // [required]
+       *   content: string
+       *   // [required]
+       *   incidentId: number
+       *   // [required]
+       *   createdAt: string
+       *   // [required]
+       *   updatedAt: string
+       *   // [required]
+       *   service: object
+       * }>
+       * ```
+       */
+      findAll<Config extends Alova2MethodConfig<AlertResponseDto[]>>(
+        config?: Config
+      ): Alova2Method<AlertResponseDto[], 'alert.findAll', Config>;
       /**
        * ---
        *
@@ -182,8 +246,9 @@ declare global {
        *   title: string
        *   // [required]
        *   content: string
-       *   type?: 'trigger' | 'resolve'
-       *   customFields?: object
+       *   // [required]
+       *   type: 'trigger' | 'resolve'
+       *   customFields?: Record<string, unknown>
        * }
        * ```
        *
@@ -207,6 +272,861 @@ declare global {
       >(
         config: Config
       ): Alova2Method<unknown, 'alert.receiveWithServiceId', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /alert/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = {
+       *   // [required]
+       *   id: number
+       *   // [required]
+       *   title: string
+       *   // [required]
+       *   content: string
+       *   // [required]
+       *   incidentId: number
+       *   // [required]
+       *   createdAt: string
+       *   // [required]
+       *   updatedAt: string
+       *   // [required]
+       *   service: object
+       * }
+       * ```
+       */
+      findOne<
+        Config extends Alova2MethodConfig<AlertResponseDto> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<AlertResponseDto, 'alert.findOne', Config>;
+    };
+    service: {
+      /**
+       * ---
+       *
+       * [POST]
+       *
+       * **path:** /api/service
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = {
+       *   // [required]
+       *   name: string
+       *   description?: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      create<
+        Config extends Alova2MethodConfig<unknown> & {
+          data: CreateServiceDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'service.create', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /api/service
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findAll<Config extends Alova2MethodConfig<unknown>>(
+        config?: Config
+      ): Alova2Method<unknown, 'service.findAll', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /api/service/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findOne<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'service.findOne', Config>;
+      /**
+       * ---
+       *
+       * [PATCH]
+       *
+       * **path:** /api/service/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = {
+       *   // [required]
+       *   name: string
+       *   description?: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      update<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+          data: CreateServiceDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'service.update', Config>;
+    };
+    incident: {
+      /**
+       * ---
+       *
+       * [POST]
+       *
+       * **path:** /incident
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      create<
+        Config extends Alova2MethodConfig<unknown> & {
+          data: CreateIncidentDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incident.create', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /incident
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findAll<Config extends Alova2MethodConfig<unknown>>(
+        config?: Config
+      ): Alova2Method<unknown, 'incident.findAll', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /incident/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findOne<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incident.findOne', Config>;
+      /**
+       * ---
+       *
+       * [PATCH]
+       *
+       * **path:** /incident/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      update<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+          data: UpdateIncidentDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incident.update', Config>;
+    };
+    incidenttype: {
+      /**
+       * ---
+       *
+       * [POST]
+       *
+       * **path:** /incident-type/{serviceId}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   serviceId: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      create<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            serviceId: string;
+          };
+          data: CreateIncidentTypeDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incidenttype.create', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /incident-type/{serviceId}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   serviceId: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findAll<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            serviceId: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incidenttype.findAll', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /incident-type/{serviceId}/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   serviceId: string
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findOne<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            serviceId: string;
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incidenttype.findOne', Config>;
+      /**
+       * ---
+       *
+       * [PATCH]
+       *
+       * **path:** /incident-type/{serviceId}/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   serviceId: string
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      update<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            serviceId: string;
+            /**
+             * [required]
+             */
+            id: string;
+          };
+          data: UpdateIncidentTypeDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incidenttype.update', Config>;
+      /**
+       * ---
+       *
+       * [DELETE]
+       *
+       * **path:** /incident-type/{serviceId}/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   serviceId: string
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      remove<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            serviceId: string;
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'incidenttype.remove', Config>;
+    };
+    serviceroute: {
+      /**
+       * ---
+       *
+       * [POST]
+       *
+       * **path:** /service-route
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      create<
+        Config extends Alova2MethodConfig<unknown> & {
+          data: CreateServiceRouteDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'serviceroute.create', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /service-route
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findAll<Config extends Alova2MethodConfig<unknown>>(
+        config?: Config
+      ): Alova2Method<unknown, 'serviceroute.findAll', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /service-route/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findOne<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'serviceroute.findOne', Config>;
+      /**
+       * ---
+       *
+       * [PATCH]
+       *
+       * **path:** /service-route/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      update<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+          data: UpdateServiceRouteDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'serviceroute.update', Config>;
+      /**
+       * ---
+       *
+       * [DELETE]
+       *
+       * **path:** /service-route/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      remove<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'serviceroute.remove', Config>;
+    };
+    globalcustomfield: {
+      /**
+       * ---
+       *
+       * [POST]
+       *
+       * **path:** /global-custom-field
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      create<
+        Config extends Alova2MethodConfig<unknown> & {
+          data: CreateGlobalCustomFieldDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'globalcustomfield.create', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /global-custom-field
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findAll<Config extends Alova2MethodConfig<unknown>>(
+        config?: Config
+      ): Alova2Method<unknown, 'globalcustomfield.findAll', Config>;
+      /**
+       * ---
+       *
+       * [GET]
+       *
+       * **path:** /global-custom-field/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      findOne<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'globalcustomfield.findOne', Config>;
+      /**
+       * ---
+       *
+       * [PATCH]
+       *
+       * **path:** /global-custom-field/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **RequestBody**
+       * ```ts
+       * type RequestBody = object
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      update<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+          data: UpdateGlobalCustomFieldDto;
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'globalcustomfield.update', Config>;
+      /**
+       * ---
+       *
+       * [DELETE]
+       *
+       * **path:** /global-custom-field/{id}
+       *
+       * ---
+       *
+       * **Path Parameters**
+       * ```ts
+       * type PathParameters = {
+       *   // [required]
+       *   id: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = unknown
+       * ```
+       */
+      remove<
+        Config extends Alova2MethodConfig<unknown> & {
+          pathParams: {
+            /**
+             * [required]
+             */
+            id: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<unknown, 'globalcustomfield.remove', Config>;
     };
   }
 

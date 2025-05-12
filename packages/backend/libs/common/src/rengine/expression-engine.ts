@@ -1,10 +1,10 @@
 import { Jexl } from 'jexl';
 
 /**
- * Jexl规则引擎基础类
- * 提供Jexl表达式评估的核心功能
+ * Jexl Rule Engine Base Class
+ * Provides core functionality for Jexl expression evaluation
  */
-export class JexlRuleEngine extends Jexl {
+export class ExpressionEngine extends Jexl {
 
   constructor(private expression: string) {
     super();
@@ -12,7 +12,7 @@ export class JexlRuleEngine extends Jexl {
   }
 
   /**
-   * 设置所有内置的转换器
+   * Setup all built-in transforms
    */
   private setupTransforms() {
     this.setupDateTransforms();
@@ -20,39 +20,41 @@ export class JexlRuleEngine extends Jexl {
   }
 
   /**
-   * 异步执行规则评估
+   * Evaluate rule asynchronously
    */
   async evaluate(context: any): Promise<boolean> {
     try {
+      console.log('context', context)
+      console.log('expression', this.expression)
       return await this.eval(this.expression, context);
     } catch (error) {
-      console.error(`规则执行错误: ${this.expression}`, error);
+      console.error(`Rule evaluation error: ${this.expression}`, error);
       return false;
     }
   }
 
   /**
-   * 同步执行规则评估
+   * Evaluate rule synchronously
    */
   evaluateSync(context: any): boolean {
     try {
       return this.evalSync(this.expression, context);
     } catch (error) {
-      console.error(`规则执行错误: ${this.expression}`, error);
+      console.error(`Rule evaluation error: ${this.expression}`, error);
       return false;
     }
   }
 
   /**
-   * 设置日期相关的转换器
+   * Setup date-related transforms
    */
   private setupDateTransforms(): void {
-    // 日期格式化
+    // Date formatting
     this.addTransform('date', (val: string | Date) => {
       return val instanceof Date ? val : new Date(val);
     });
     
-    // 日期比较
+    // Date comparison
     this.addTransform('after', (date1: string | Date, date2: string | Date) => {
       const d1 = date1 instanceof Date ? date1 : new Date(date1);
       const d2 = date2 instanceof Date ? date2 : new Date(date2);
@@ -67,10 +69,10 @@ export class JexlRuleEngine extends Jexl {
   }
 
   /**
-   * 设置字符串相关的转换器
+   * Setup string-related transforms
    */
   private setupStringMatchers(): void {
-    // 字符串匹配
+    // String matching
     this.addTransform('contains', (str: string, search: string) => {
       if (typeof str !== 'string' || typeof search !== 'string') return false;
       return str.includes(search);
@@ -89,7 +91,9 @@ export class JexlRuleEngine extends Jexl {
     this.addTransform('matches', (str: string, pattern: string) => {
       if (typeof str !== 'string' || typeof pattern !== 'string') return false;
       const regex = new RegExp(pattern);
-      return regex.test(str);
+      const res = regex.test(str)
+      console.log('matches', str, pattern, res)
+      return res;
     });
   }
 } 

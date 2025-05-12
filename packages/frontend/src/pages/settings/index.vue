@@ -83,6 +83,17 @@ const saveSettings = async () => {
 onMounted(() => {
   loadSettings();
 });
+
+// 定义路由 meta
+definePage({
+  meta: {
+    menu: {
+      title: 'settings',
+      icon: 'pi pi-sliders-h',
+      order: 5
+    }
+  }
+})
 </script>
 
 <template>

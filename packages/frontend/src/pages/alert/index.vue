@@ -1,246 +1,93 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, effect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import Dropdown from 'primevue/dropdown';
+import Calendar from 'primevue/calendar';
+import InputText from 'primevue/inputtext';
+import InputGroup from 'primevue/inputgroup';
+import InputGroupAddon from 'primevue/inputgroupaddon';
+import { useRequest } from 'alova/client';
+import Apis from '../../api'
 
 const { t } = useI18n();
 
-// 定义告警数据结构
-interface Alert {
-  id: string;
-  title: string;
-  status: 'active' | 'resolved' | 'suppressed';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  createdAt: string;
-  service?: string;
-}
+const { data: alerts , loading} = useRequest(Apis.alert.findAll)
 
-// 模拟数据
-const alerts = ref<Alert[]>([
-  {
-    id: '1',
-    title: 'CPU使用率超过阈值',
-    status: 'active',
-    severity: 'high',
-    createdAt: '2023-10-15T08:30:00Z',
-    service: '用户认证服务'
-  },
-  {
-    id: '2',
-    title: '内存不足警告',
-    status: 'resolved',
-    severity: 'medium',
-    createdAt: '2023-10-14T14:20:00Z',
-    service: '主数据库'
-  },
-  {
-    id: '3',
-    title: '网络延迟增加',
-    status: 'suppressed',
-    severity: 'low',
-    createdAt: '2023-10-10T11:05:00Z',
-    service: '网站前端'
-  }
+const serviceOptions = ref([
+  { label: '全部服务', value: '' },
+  { label: '订单服务', value: '订单服务' },
+  { label: '用户服务', value: '用户服务' },
+  { label: '支付服务', value: '支付服务' }
 ]);
 
-// 加载数据函数
-const loading = ref(false);
-const loadAlerts = async () => {
-  loading.value = true;
-  try {
-    // 这里应该是API调用，现在使用模拟数据
-    // const response = await fetch('/api/alerts');
-    // alerts.value = await response.json();
-    // 模拟加载延迟
-    await new Promise(resolve => setTimeout(resolve, 500));
-  } catch (error) {
-    console.error('加载告警列表失败:', error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-// 页面加载时获取数据
-onMounted(() => {
-  loadAlerts();
+// 筛选条件
+const filters = ref({
+  type: '',
+  service: '',
+  dateRange: null,
+  search: ''
 });
 
-// 格式化日期
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleString();
-};
+// 排序
+const sortField = ref('createdAt');
+const sortOrder = ref(-1);
 
-// 获取状态对应的样式类
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'active': return 'status-active';
-    case 'resolved': return 'status-resolved';
-    case 'suppressed': return 'status-suppressed';
-    default: return '';
+// 定义路由 meta
+definePage({
+  meta: {
+    menu: {
+      title: 'alert',
+      icon: 'pi pi-bell',
+      order: 3
+    }
   }
-};
-
-// 获取严重性对应的样式类
-const getSeverityClass = (severity: string) => {
-  switch (severity) {
-    case 'critical': return 'severity-critical';
-    case 'high': return 'severity-high';
-    case 'medium': return 'severity-medium';
-    case 'low': return 'severity-low';
-    default: return '';
-  }
-};
+})
 </script>
 
 <template>
-  <div class="alert-list-page">
-    <h1>告警列表</h1>
+  <div class="p-6">
+    <h1 class="text-2xl font-semibold mb-6">告警列表</h1>
 
-    <!-- 加载状态 -->
-    <div class="loading-state" v-if="loading">
-      <i class="pi pi-spinner pi-spin"></i>
-      <p>加载中...</p>
+    <!-- 筛选栏 -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <Dropdown v-model="filters.service" :options="serviceOptions" optionLabel="label" optionValue="value"
+        placeholder="服务" class="w-full" />
+      <Calendar v-model="filters.dateRange" selectionMode="range" placeholder="开始时间 - 结束时间" class="w-full" showIcon />
+      <span class="p-input-icon-left w-full">
+        <InputGroup>
+          <InputGroupAddon>
+            <i class="pi pi-search" />
+          </InputGroupAddon>
+          <InputText v-model="filters.search" placeholder="搜索告警标题" class="w-full" />
+        </InputGroup>
+      </span>
     </div>
 
-    <!-- 告警列表 -->
-    <div class="alert-list" v-else>
-      <div class="alert-item" v-for="alert in alerts" :key="alert.id">
-        <div class="alert-header">
-          <div class="alert-title">
-            <router-link :to="`/alert/${alert.id}`">{{ alert.title }}</router-link>
-          </div>
-          <div class="alert-meta">
-            <span class="alert-status" :class="getStatusClass(alert.status)">
-              {{ alert.status === 'active' ? '活跃' : alert.status === 'resolved' ? '已解决' : '已抑制' }}
-            </span>
-            <span class="alert-severity" :class="getSeverityClass(alert.severity)">
-              {{ alert.severity === 'critical' ? '严重' : alert.severity === 'high' ? '高' : alert.severity === 'medium' ? '中' : '低' }}
-            </span>
-          </div>
-        </div>
-
-        <div class="alert-body">
-          <div class="alert-service" v-if="alert.service">
-            <span class="label">关联服务:</span>
-            <span>{{ alert.service }}</span>
-          </div>
-          <div class="alert-date">
-            <span class="label">创建时间:</span>
-            <span>{{ formatDate(alert.createdAt) }}</span>
-          </div>
-        </div>
-      </div>
+    <!-- 排序标签 -->
+    <div class="flex gap-2 mb-4">
+      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'createdAt' }">
+        创建时间
+        <i class="pi pi-angle-down ml-1" v-if="sortField === 'createdAt' && sortOrder === 1"></i>
+        <i class="pi pi-angle-up ml-1" v-if="sortField === 'createdAt' && sortOrder === -1"></i>
+      </Button>
     </div>
+
+    <!-- 数据表格 -->
+    <DataTable :value="alerts" :loading="loading" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]"
+      responsiveLayout="scroll">
+      <Column field="id" header="ID" style="width: 8%" />
+      <Column field="title" header="告警标题" style="width: 25%" />
+      <Column field="service.name" header="服务" style="width: 15%" />
+      <Column field="incidentId" header="关联事件" style="width: 15%" />
+      <Column field="createdAt" header="创建时间" style="width: 17%" />
+      <Column header="操作" style="width: 8%">
+        <template #body>
+          <Button icon="pi pi-eye" class="p-button-text p-button-sm" label="查看" />
+        </template>
+      </Column>
+    </DataTable>
   </div>
 </template>
-
-<style scoped>
-.alert-list-page {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.alert-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.alert-item {
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  padding: 15px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.alert-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.alert-title {
-  font-weight: 500;
-}
-
-.alert-meta {
-  display: flex;
-  gap: 10px;
-}
-
-.alert-status, .alert-severity {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.status-active {
-  background-color: #ffecb3;
-  color: #856404;
-}
-
-.status-resolved {
-  background-color: #c3e6cb;
-  color: #155724;
-}
-
-.status-suppressed {
-  background-color: #d1ecf1;
-  color: #0c5460;
-}
-
-.severity-critical {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.severity-high {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.severity-medium {
-  background-color: #bee5eb;
-  color: #0c5460;
-}
-
-.severity-low {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.alert-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.alert-service, .alert-date {
-  display: flex;
-  gap: 5px;
-}
-
-.label {
-  font-weight: 500;
-  color: #666;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 0;
-  text-align: center;
-}
-
-.loading-state i {
-  font-size: 48px;
-  margin-bottom: 16px;
-  color: #ccc;
-}
-</style>

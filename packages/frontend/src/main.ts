@@ -20,7 +20,9 @@ async function bootstrap() {
   app.use(PrimeVueConfig, {
     theme: {
       preset: Aura
-    }
+    },
+    ripple: true,
+    inputStyle: 'filled'
   })
 
   app.mount('#app')

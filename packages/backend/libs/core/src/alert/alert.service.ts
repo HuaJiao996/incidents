@@ -6,7 +6,7 @@ import { get } from 'radash';
 import { DatabaseService } from '@libs/database';
 import { RedisService } from '@libs/redis';
 import { CustomFieldValidationException } from '@libs/common/exceptions/custom-field-validation.exception';
-import { RuleEngineAdapter } from '@libs/common/rule-engine';
+import { RuleEngine } from '@libs/common/rengine';
 import { customFieldValidators } from '@libs/common/validators/custom-field.validator';
 import { GlobalCustomField, ServiceCustomField } from '@libs/database/prisma';
 
@@ -75,20 +75,21 @@ export class AlertService {
     }
     const serviceRoutes = await this.databaseService.client.serviceRoute.findMany()
 
-    const engine = new RuleEngineAdapter();
+    this.logger.debug(serviceRoutes)
+    const engine = new RuleEngine<number>();
     serviceRoutes.forEach((serviceRoute) => {
       // 确保 condition 不为空
       if (serviceRoute.condition) {
         engine.appendRule(
           serviceRoute.condition,
-          { serviceId: serviceRoute.serviceId },
+          serviceRoute.serviceId,
           serviceRoute.order,
         );
       }
     });
     const serviceId = await engine
-      .run(alertDto)
-      .then(({ events }) => events[0]?.params?.serviceId as number | undefined);
+      .run(alertDto);
+      
     return this.receiveWithServiceId(alertDto, serviceId, false);
   }
 
@@ -153,5 +154,10 @@ export class AlertService {
     const alertId = alertData.id;
 
     await this.alertQueue.add('alert', alertId);
+
+    return {
+      alertId,
+      serviceId
+    }
   }
 }
