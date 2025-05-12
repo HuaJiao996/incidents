@@ -5,11 +5,9 @@ import { Jexl } from 'jexl';
  * 提供Jexl表达式评估的核心功能
  */
 export class JexlRuleEngine extends Jexl {
-  private expression: string;
 
-  constructor(expression: string) {
+  constructor(private expression: string) {
     super();
-    this.expression = expression;
     this.setupTransforms();
   }
 
@@ -19,14 +17,6 @@ export class JexlRuleEngine extends Jexl {
   private setupTransforms() {
     this.setupDateTransforms();
     this.setupStringMatchers();
-  }
-
-  /**
-   * 添加自定义操作符
-   */
-  addTransform(operator: string, transform: (...args: any[]) => any): this {
-    super.addTransform(operator, transform);
-    return this;
   }
 
   /**
