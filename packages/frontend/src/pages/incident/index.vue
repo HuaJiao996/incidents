@@ -167,45 +167,45 @@ definePage({
 <template>
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold">故障事件列表</h1>
+      <h1 class="text-2xl font-semibold">{{ t('incident.title') }}</h1>
       <div class="flex gap-2">
-        <Button label="批量分配" icon="pi pi-users" class="p-button-outlined" />
-        <Button label="批量解决" icon="pi pi-check" severity="success" />
+        <Button :label="t('incident.batchAssign')" icon="pi pi-users" class="p-button-outlined" />
+        <Button :label="t('incident.batchResolve')" icon="pi pi-check" severity="success" />
       </div>
     </div>
 
     <!-- 筛选栏 -->
     <div class="grid grid-cols-6 gap-4 mb-6">
       <Dropdown v-model="filters.status" :options="statusOptions" optionLabel="label" optionValue="value"
-        placeholder="状态" class="w-full" />
+        :placeholder="t('common.status')" class="w-full" />
       <Dropdown v-model="filters.assignee" :options="assigneeOptions" optionLabel="label" optionValue="value"
         placeholder="负责人" class="w-full" />
       <Dropdown v-model="filters.type" :options="typeOptions" optionLabel="label" optionValue="value"
         placeholder="类型" class="w-full" />
       <Dropdown v-model="filters.service" :options="serviceOptions" optionLabel="label" optionValue="value"
-        placeholder="服务" class="w-full" />
-      <Calendar v-model="filters.dateRange" selectionMode="range" placeholder="时间范围"
+        :placeholder="t('alert.service')" class="w-full" />
+      <Calendar v-model="filters.dateRange" selectionMode="range" :placeholder="t('alert.dateRange')"
         class="w-full" showIcon />
       <span class="p-input-icon-left w-full">
         <i class="pi pi-search" />
-        <InputText v-model="filters.search" placeholder="搜索..." class="w-full" />
+        <InputText v-model="filters.search" :placeholder="t('common.search')" class="w-full" />
       </span>
     </div>
 
     <!-- 排序标签 -->
     <div class="flex gap-2 mb-4">
       <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'createdAt' }">
-        创建时间
+        {{ t('common.createTime') }}
         <i class="pi pi-angle-down ml-1" v-if="sortField === 'createdAt' && sortOrder === 1"></i>
         <i class="pi pi-angle-up ml-1" v-if="sortField === 'createdAt' && sortOrder === -1"></i>
       </Button>
       <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'updatedAt' }">
-        更新时间
+        {{ t('common.updateTime') }}
         <i class="pi pi-angle-down ml-1" v-if="sortField === 'updatedAt' && sortOrder === 1"></i>
         <i class="pi pi-angle-up ml-1" v-if="sortField === 'updatedAt' && sortOrder === -1"></i>
       </Button>
       <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'status' }">
-        状态
+        {{ t('common.status') }}
         <i class="pi pi-angle-down ml-1" v-if="sortField === 'status' && sortOrder === 1"></i>
         <i class="pi pi-angle-up ml-1" v-if="sortField === 'status' && sortOrder === -1"></i>
       </Button>
@@ -216,8 +216,8 @@ definePage({
       :rows="10" :totalRecords="totalRecords" :first="first"
       stripedRows showGridlines>
       <Column field="id" header="ID" />
-      <Column field="title" header="标题" />
-      <Column field="status" header="状态">
+      <Column field="title" :header="t('common.title')" />
+      <Column field="status" :header="t('common.status')">
         <template #body="{ data }">
           <span :class="['px-2 py-1 rounded text-sm', getStatusClass(data.status)]">
             {{ data.status }}
@@ -225,16 +225,16 @@ definePage({
         </template>
       </Column>
       <Column field="assignee" header="负责人" />
-      <Column field="createdAt" header="创建时间" />
-      <Column field="updatedAt" header="更新时间" />
-      <Column field="service" header="服务" />
+      <Column field="createdAt" :header="t('common.createTime')" />
+      <Column field="updatedAt" :header="t('common.updateTime')" />
+      <Column field="service" :header="t('alert.service')" />
       <Column field="type" header="类型" />
-      <Column header="操作" :exportable="false" style="min-width:8rem">
+      <Column :header="t('common.actions')" :exportable="false" style="min-width:8rem">
         <template #body>
           <div class="flex gap-2">
-            <Button icon="pi pi-eye" class="p-button-text p-button-sm" />
-            <Button icon="pi pi-user" class="p-button-text p-button-sm" />
-            <Button icon="pi pi-check" class="p-button-text p-button-sm" />
+            <Button icon="pi pi-eye" class="p-button-text p-button-sm" :aria-label="t('common.view')" />
+            <Button icon="pi pi-user" class="p-button-text p-button-sm" :aria-label="t('common.edit')" />
+            <Button icon="pi pi-check" class="p-button-text p-button-sm" :aria-label="t('common.confirm')" />
           </div>
         </template>
       </Column>
