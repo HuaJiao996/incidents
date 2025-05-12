@@ -19,7 +19,8 @@ async function bootstrap() {
   app.use(i18n)
   app.use(PrimeVueConfig, {
     theme: {
-      preset: Aura
+      preset: Aura,
+      dark: false
     },
     ripple: true,
     inputStyle: 'filled'

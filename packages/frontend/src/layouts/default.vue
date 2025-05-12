@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
+import ThemeSwitcher from '../components/ThemeSwitcher.vue';
 import Menubar from 'primevue/menubar';
 import Button from 'primevue/button';
 import logo from '../assets/logo.svg';
@@ -56,14 +57,14 @@ function getDefaultIcon(path: string): string {
             </div>
           </template>
           <template #item="{ item }">
-            <router-link 
-              v-if="item.to" 
-              :to="item.to" 
-              v-slot="{ href, navigate }" 
+            <router-link
+              v-if="item.to"
+              :to="item.to"
+              v-slot="{ href, navigate }"
               custom
             >
-              <a 
-                :href="href" 
+              <a
+                :href="href"
                 @click="navigate"
                 class="flex items-center px-5 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
               >
@@ -80,6 +81,7 @@ function getDefaultIcon(path: string): string {
               </span> -->
               <div class="flex items-center gap-2">
                 <LanguageSwitcher />
+                <ThemeSwitcher />
                 <Button icon="pi pi-user" class="p-button-text !w-10 !h-10 !rounded-full hover:!bg-gray-100" />
               </div>
             </div>
