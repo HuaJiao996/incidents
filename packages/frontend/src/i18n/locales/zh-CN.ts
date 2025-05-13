@@ -48,6 +48,28 @@ export default {
         title: 'SSL证书警告',
         description: 'SSL证书即将过期'
       }
+    },
+    type: {
+      form: {
+        name: '名称',
+        title: {
+          label: '标题模板',
+          placeholder: '输入标题模板，使用 #{alert.xxx} 引用告警字段'
+        },
+        description: {
+          label: '描述模板',
+          placeholder: '输入描述模板，使用 #{alert.xxx} 引用告警字段'
+        },
+        condition: {
+          label: '匹配条件',
+          placeholder: '输入 Jexl 表达式，使用 alert.xxx 引用告警字段'
+        },
+        groupCondition: {
+          label: '分组条件',
+          placeholder: '输入 Jexl 表达式，使用 alert.xxx 和 incident.xxx 引用字段'
+        },
+        priority: '优先级'
+      }
     }
   },
   alert: {
@@ -100,6 +122,60 @@ export default {
         minutes: '{minutes}分钟前',
         hours: '{hours}小时前'
       }
+    }
+  },
+  editor: {
+    fieldType: {
+      string: '文本',
+      number: '数字',
+      boolean: '布尔值',
+      enum: '枚举',
+      date: '日期',
+      array: '数组',
+      required: '必填'
+    },
+    field: {
+      global: '全局字段',
+      service: '服务字段'
+    },
+    alert: {
+      title: '告警标题',
+      content: '告警内容',
+      createdAt: '告警创建时间',
+      customFields: '告警自定义字段'
+    },
+    incident: {
+      status: '事件状态',
+      createdAt: '事件创建时间',
+      serviceId: '服务ID',
+      alerts: '关联的告警列表'
+    },
+    operator: {
+      matches: '正则匹配',
+      equals: '等于',
+      notEquals: '不等于',
+      greaterThan: '大于',
+      greaterThanOrEqual: '大于等于',
+      lessThan: '小于',
+      lessThanOrEqual: '小于等于',
+      and: '且',
+      or: '或'
+    },
+    transform: {
+      date: '转换为日期',
+      dateInfo: '将字符串转换为日期对象',
+      after: '晚于',
+      afterInfo: '检查日期是否晚于指定日期',
+      before: '早于',
+      beforeInfo: '检查日期是否早于指定日期',
+      contains: '包含',
+      containsInfo: '检查字符串是否包含指定子串',
+      startsWith: '以...开头',
+      startsWithInfo: '检查字符串是否以指定前缀开头',
+      endsWith: '以...结尾',
+      endsWithInfo: '检查字符串是否以指定后缀结尾',
+      matches: '匹配正则',
+      matchesInfo: '检查字符串是否匹配指定的正则表达式'
     }
   }
 }
