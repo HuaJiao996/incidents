@@ -2,16 +2,29 @@
   "name": "incidents",
   "version": "1.0.0",
   "description": "Incidents management system",
+  "private": true,
   "type": "module",
   "scripts": {
     "db:install": "node scripts/setup.js install",
     "db:start": "node scripts/setup.js start",
-    "install:prod": "cross-env NODE_ENV=production npm install"
+    "install:prod": "cross-env NODE_ENV=production pnpm install --frozen-lockfile",
+    "dev": "concurrently \"pnpm dev:fe\" \"pnpm dev:be\"",
+    "dev:fe": "pnpm --filter @incidents/frontend dev",
+    "dev:be": "pnpm --filter @incidents/backend dev",
+    "build": "pnpm --filter @incidents/frontend build",
+    "build:be": "pnpm --filter @incidents/backend build",
+    "clean": "pnpm --filter @incidents/frontend clean",
+    "clean:be": "pnpm --filter @incidents/backend clean",
+    "test": "pnpm --filter @incidents/frontend test",
+    "test:be": "pnpm --filter @incidents/backend test"
   },
   "dependencies": {
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "cross-env": "^7.0.3",
     "execa": "^9.5.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

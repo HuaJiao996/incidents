@@ -306,190 +306,153 @@ const formatDate = (dateString: string) => {
 
 <style scoped>
 .service-detail-page {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+  @apply p-6;
 }
 
 .back-link {
-  margin-bottom: 20px;
+  @apply mb-6;
 }
 
 .back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: #666;
-  text-decoration: none;
+  @apply flex items-center gap-2 text-text-color-secondary hover:text-text-color transition-colors;
 }
 
-.back-button:hover {
-  color: #333;
+.loading-state,
+.error-state {
+  @apply flex flex-col items-center justify-center p-12 text-text-color-secondary;
+}
+
+.loading-state i,
+.error-state i {
+  @apply text-4xl mb-4;
+}
+
+.retry-button {
+  @apply mt-4 px-4 py-2 bg-surface-hover text-text-color rounded-lg hover:bg-surface-hover/80 transition-colors;
+}
+
+.service-detail {
+  @apply space-y-6;
 }
 
 .service-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
+  @apply flex justify-between items-center bg-surface-card p-6 rounded-lg shadow-sm;
 }
 
 .service-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  @apply flex items-center gap-3;
 }
 
 .service-title i {
-  font-size: 24px;
-  color: #666;
+  @apply text-2xl text-text-color-secondary;
 }
 
 .service-title h1 {
-  margin: 0;
-  font-size: 24px;
+  @apply text-2xl font-semibold text-text-color;
 }
 
 .service-status {
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  @apply px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium;
 }
 
-.status-healthy, .status-normal {
-  background-color: #c3e6cb;
-  color: #155724;
+.status-healthy {
+  @apply bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400;
 }
 
 .status-warning {
-  background-color: #fff3cd;
-  color: #856404;
+  @apply bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400;
 }
 
 .status-critical {
-  background-color: #f8d7da;
-  color: #721c24;
+  @apply bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400;
 }
 
 .status-maintenance {
-  background-color: #d1ecf1;
-  color: #0c5460;
+  @apply bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400;
+}
+
+.status-normal {
+  @apply bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400;
 }
 
 .service-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 20px;
+  @apply bg-surface-card p-6 rounded-lg shadow-sm;
+}
+
+.service-info-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-6;
 }
 
 .info-item {
-  display: flex;
-  gap: 5px;
+  @apply space-y-1;
 }
 
-.info-item .label {
-  font-weight: 500;
-  color: #666;
+.info-label {
+  @apply text-sm text-text-color-secondary;
 }
 
-.service-description {
-  margin-bottom: 30px;
-}
-
-.service-description h2, .service-metrics h2, .service-incidents h2 {
-  font-size: 18px;
-  margin-bottom: 15px;
+.info-value {
+  @apply text-lg font-medium text-text-color;
 }
 
 .metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
 }
 
 .metric-card {
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  padding: 15px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  @apply bg-surface-card p-6 rounded-lg shadow-sm;
 }
 
 .metric-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  @apply flex justify-between items-center mb-4;
 }
 
 .metric-name {
-  font-weight: 500;
-  color: #666;
-}
-
-.metric-status {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  @apply text-lg font-medium text-text-color;
 }
 
 .metric-value {
-  font-size: 24px;
-  font-weight: 500;
+  @apply text-2xl font-semibold text-text-color;
+}
+
+.metric-unit {
+  @apply text-sm text-text-color-secondary;
 }
 
 .incidents-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 30px;
+  @apply space-y-4;
 }
 
 .incident-item {
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  padding: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  @apply flex justify-between items-center p-4 bg-surface-hover rounded-lg;
+}
+
+.incident-info {
+  @apply space-y-1;
 }
 
 .incident-title {
-  font-weight: 500;
-  margin-bottom: 5px;
-}
-
-.incident-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-}
-
-.incident-status {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.status-open {
-  background-color: #ffecb3;
-  color: #856404;
-}
-
-.status-in-progress {
-  background-color: #b3e0ff;
-  color: #004085;
-}
-
-.status-closed {
-  background-color: #c3e6cb;
-  color: #155724;
+  @apply font-medium text-text-color;
 }
 
 .incident-date {
-  color: #666;
+  @apply text-sm text-text-color-secondary;
+}
+
+.incident-status {
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.status-open {
+  @apply bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400;
+}
+
+.status-in_progress {
+  @apply bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400;
+}
+
+.status-closed {
+  @apply bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400;
 }
 
 .service-actions {
@@ -497,8 +460,6 @@ const formatDate = (dateString: string) => {
   gap: 10px;
   flex-wrap: wrap;
 }
-
-
 
 .loading-state, .error-state, .not-found {
   display: flex;

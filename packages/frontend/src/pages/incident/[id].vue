@@ -120,10 +120,10 @@ const submitComment = () => {
 
 const getStatusClass = (status: string) => {
   switch (status) {
-    case 'Triggered': return 'bg-red-50 text-red-600';
-    case 'Investigating': return 'bg-yellow-50 text-yellow-600';
-    case 'Resolved': return 'bg-green-50 text-green-600';
-    default: return 'bg-gray-50 text-gray-600';
+    case 'Triggered': return 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400';
+    case 'Investigating': return 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400';
+    case 'Resolved': return 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400';
+    default: return 'bg-surface-hover text-text-color-secondary';
   }
 };
 </script>
@@ -132,7 +132,7 @@ const getStatusClass = (status: string) => {
   <div class="max-w-7xl mx-auto p-6">
     <div class="flex justify-between items-center mb-6">
       <div class="flex items-center gap-2">
-        <h1 class="text-2xl font-semibold">#1 Network Latency Issue</h1>
+        <h1 class="text-2xl font-semibold text-text-color">#1 Network Latency Issue</h1>
         <Button label="Change Status" severity="primary" icon="pi pi-chevron-down" />
       </div>
     </div>
@@ -141,55 +141,55 @@ const getStatusClass = (status: string) => {
       <!-- 左侧主要内容 -->
       <div class="col-span-2 space-y-6">
         <!-- 基本信息 -->
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h2 class="text-lg font-semibold mb-4">Basic Information</h2>
+        <div class="bg-surface-card rounded-lg p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-4 text-text-color">Basic Information</h2>
           <div class="space-y-4">
             <div class="grid grid-cols-3 gap-4">
               <div>
-                <div class="text-gray-500 text-sm">Title:</div>
-                <div>{{ incident.title }}</div>
+                <div class="text-text-color-secondary text-sm">Title:</div>
+                <div class="text-text-color">{{ incident.title }}</div>
               </div>
               <div>
-                <div class="text-gray-500 text-sm">Description:</div>
-                <div class="text-sm">{{ incident.description }}</div>
+                <div class="text-text-color-secondary text-sm">Description:</div>
+                <div class="text-sm text-text-color">{{ incident.description }}</div>
               </div>
               <div>
-                <div class="text-gray-500 text-sm">Status:</div>
+                <div class="text-text-color-secondary text-sm">Status:</div>
                 <span :class="['px-2 py-1 rounded text-sm', getStatusClass(incident.status)]">
                   {{ incident.status }}
                 </span>
               </div>
               <div>
-                <div class="text-gray-500 text-sm">Assignee:</div>
-                <div class="flex items-center gap-2">
+                <div class="text-text-color-secondary text-sm">Assignee:</div>
+                <div class="flex items-center gap-2 text-text-color">
                   {{ incident.assignee.name }}
-                  <i class="pi pi-external-link text-sm text-blue-500"></i>
+                  <i class="pi pi-external-link text-sm text-primary-color"></i>
                 </div>
               </div>
               <div>
-                <div class="text-gray-500 text-sm">Type:</div>
-                <div>{{ incident.type }}</div>
+                <div class="text-text-color-secondary text-sm">Type:</div>
+                <div class="text-text-color">{{ incident.type }}</div>
               </div>
               <div>
-                <div class="text-gray-500 text-sm">Created:</div>
-                <div>{{ incident.created }}</div>
+                <div class="text-text-color-secondary text-sm">Created:</div>
+                <div class="text-text-color">{{ incident.created }}</div>
               </div>
               <div>
-                <div class="text-gray-500 text-sm">Updated:</div>
-                <div>{{ incident.updated }}</div>
+                <div class="text-text-color-secondary text-sm">Updated:</div>
+                <div class="text-text-color">{{ incident.updated }}</div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- 告警信息 -->
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h2 class="text-lg font-semibold mb-4">Alerts</h2>
+        <div class="bg-surface-card rounded-lg p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-4 text-text-color">Alerts</h2>
           <div class="space-y-2">
             <div v-for="alert in incident.alerts" :key="alert.name" 
               class="flex items-center gap-2">
               <i class="pi pi-exclamation-triangle text-yellow-500"></i>
-              <span>{{ alert.name }}</span>
+              <span class="text-text-color">{{ alert.name }}</span>
               <span :class="['px-2 py-1 rounded text-xs', getStatusClass(alert.status)]">
                 {{ alert.status }}
               </span>
@@ -198,8 +198,8 @@ const getStatusClass = (status: string) => {
         </div>
 
         <!-- 相关事件 -->
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h2 class="text-lg font-semibold mb-4">Related Incidents</h2>
+        <div class="bg-surface-card rounded-lg p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-4 text-text-color">Related Incidents</h2>
           <div class="space-y-2">
             <div v-for="related in incident.relatedIncidents" :key="related.id"
               class="flex items-center gap-2">
@@ -210,14 +210,14 @@ const getStatusClass = (status: string) => {
         </div>
 
         <!-- 时间线 -->
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h2 class="text-lg font-semibold mb-4">Timeline</h2>
+        <div class="bg-surface-card rounded-lg p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-4 text-text-color">Timeline</h2>
           <div class="space-y-4">
             <div v-for="(event, index) in incident.timeline" :key="index"
               class="flex gap-4">
               <div class="w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
               <div>
-                <div class="text-sm text-gray-500">{{ event.timestamp }}</div>
+                <div class="text-sm text-text-color">{{ event.timestamp }}</div>
                 <div>{{ event.content }}</div>
               </div>
             </div>
@@ -227,8 +227,8 @@ const getStatusClass = (status: string) => {
 
       <!-- 右侧评论区 -->
       <div class="space-y-6">
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h2 class="text-lg font-semibold mb-4">Comments</h2>
+        <div class="bg-surface-card rounded-lg p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-4 text-text-color">Comments</h2>
           <div class="space-y-4">
             <div v-for="comment in incident.comments" :key="comment.id"
               class="space-y-2">
@@ -241,9 +241,9 @@ const getStatusClass = (status: string) => {
                 <div class="flex-1">
                   <div class="flex justify-between">
                     <span class="font-medium">{{ comment.user.name }}</span>
-                    <span class="text-sm text-gray-500">{{ comment.timestamp }}</span>
+                    <span class="text-sm text-text-color">{{ comment.timestamp }}</span>
                   </div>
-                  <p class="text-gray-600 mt-1">{{ comment.content }}</p>
+                  <p class="text-text-color mt-1">{{ comment.content }}</p>
                 </div>
               </div>
             </div>

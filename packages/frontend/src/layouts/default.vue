@@ -45,15 +45,15 @@ function getDefaultIcon(path: string): string {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen">
     <!-- 顶部导航栏 -->
-    <div class="fixed top-0 left-0 w-full h-16 bg-white shadow-sm z-50">
+    <div class="fixed top-0 left-0 w-full h-16 shadow-sm z-50 bg-surface">
       <div class="flex justify-between items-center w-full px-4 h-full">
         <Menubar :model="menuItems" class="border-none bg-transparent flex-1">
           <template #start>
             <div class="flex items-center mr-4">
               <img :src="logo" alt="Incidents Logo" class="w-8 h-8" />
-              <span class="ml-2 text-xl font-bold text-blue-500">Incidents</span>
+              <span class="ml-2 text-xl font-bold text-primary">Incidents</span>
             </div>
           </template>
           <template #item="{ item }">
@@ -66,7 +66,7 @@ function getDefaultIcon(path: string): string {
               <a
                 :href="href"
                 @click="navigate"
-                class="flex items-center px-5 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+                class="flex items-center px-5 py-3 rounded-lg hover:bg-hover text-default"
               >
                 <i :class="[item.icon, 'mr-2']"></i>
                 <span>{{ item.label }}</span>
@@ -82,7 +82,10 @@ function getDefaultIcon(path: string): string {
               <div class="flex items-center gap-2">
                 <LanguageSwitcher />
                 <ThemeSwitcher />
-                <Button icon="pi pi-user" class="p-button-text !w-10 !h-10 !rounded-full hover:!bg-gray-100" />
+                <Button 
+                  icon="pi pi-user" 
+                  class="p-button-text !w-10 !h-10 !rounded-full" 
+                />
               </div>
             </div>
           </template>
@@ -98,6 +101,24 @@ function getDefaultIcon(path: string): string {
 </template>
 
 <style>
+/* 主题相关的自定义类 */
+.bg-surface {
+  background-color: var(--surface-card);
+}
+
+.text-primary {
+  color: var(--primary-color);
+}
+
+.text-default {
+  color: var(--text-color);
+}
+
+.bg-hover:hover {
+  background-color: var(--surface-hover);
+}
+
+/* PrimeVue 组件样式覆盖 */
 .p-menubar {
   padding: 0 !important;
   background: transparent !important;
@@ -119,8 +140,27 @@ function getDefaultIcon(path: string): string {
 }
 
 .p-button.p-button-text:enabled:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--surface-hover);
   color: var(--text-color);
   border-color: transparent;
+}
+
+/* 确保菜单项在深色模式下正确显示 */
+:root[data-theme='dark'] {
+  .p-menuitem-link:not(.p-disabled):hover {
+    background-color: var(--surface-hover);
+  }
+
+  .p-menubar {
+    background-color: var(--surface-card) !important;
+  }
+
+  .p-menuitem-text {
+    color: var(--text-color);
+  }
+
+  .p-menuitem-icon {
+    color: var(--text-color);
+  }
 }
 </style>
