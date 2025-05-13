@@ -6,6 +6,7 @@ import { RuleEngine } from '@libs/common/rengine';
 import { tryit } from 'radash';
 import { IncidentService } from '../incident/incident.service';
 import { Alert, Incident, IncidentStatus, IncidentType } from '@libs/database/prisma';
+import { compileTemplate } from '@libs/common/template';
 
 @Processor('alertQueue')
 export class AlertProcessor extends WorkerHost {
@@ -47,7 +48,11 @@ export class AlertProcessor extends WorkerHost {
       include: {
         service: {
           include: {
-            incidentTypes: true
+            incidentTypes: {
+              orderBy: {
+                priority: 'desc'
+              }
+            }
           }
         }
       }
@@ -80,14 +85,14 @@ export class AlertProcessor extends WorkerHost {
 
     if (error) {
       this.logger.error(error);
-      return null; // 处理错误
+      return null;
     }
 
     this.logger.debug(matchedIncidentType);
 
     if (!matchedIncidentType) {
       this.logger.error('No matching Incident Type');
-      return null; // TODO: 处理错误
+      return null;
     }
 
     return matchedIncidentType;
@@ -99,23 +104,27 @@ export class AlertProcessor extends WorkerHost {
   ) {
     this.logger.log(`处理告警 ${alert.id} 为事件类型 ${incidentType.name}`);
     let existingIncident: Incident | undefined
+    
     if (incidentType.groupCondition) {
       // 1. 首先检索 IncidentType 下所有非 RESOLVED 状态的 Incident
       const openIncidents = await this.databaseService.client.incident.findMany({
         where: {
           typeId: incidentType.id,
           status: {
-            not: IncidentStatus.RESOLVED // 查找所有非 RESOLVED 状态的事件
+            not: IncidentStatus.RESOLVED
           }
         }
       });
 
       if (openIncidents.length) {
         const groupChecker = new RuleEngine<true>();
-        groupChecker.appendRule(incidentType.groupCondition, true)
         for (const openIncident of openIncidents) {
-          const matched = await groupChecker.run(openIncident)
-          if (matched) {
+          groupChecker.appendRule(incidentType.groupCondition, true);
+          const [error, matched] = await tryit(() => 
+            groupChecker.run({ alert, incident: openIncident })
+          )();
+          
+          if (!error && matched) {
             existingIncident = openIncident;
             break;
           }
@@ -129,8 +138,9 @@ export class AlertProcessor extends WorkerHost {
         data: { incidentId: existingIncident.id }
       });
     } else {
-      await this.incidentService.createIncident(alert, incidentType);
+      const title = compileTemplate(incidentType.title, { alert });
+      const description = compileTemplate(incidentType.description, { alert });
+      await this.incidentService.createIncident(alert, incidentType, title, description);
     }
-
   }
 }

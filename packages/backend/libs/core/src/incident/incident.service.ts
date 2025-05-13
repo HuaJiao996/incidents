@@ -13,7 +13,12 @@ export class IncidentService {
     private readonly databaseService: DatabaseService,
   ) {}
 
-  async createIncident(alert: Alert, incidentType: IncidentType) {
+  async createIncident(
+    alert: Alert, 
+    incidentType: IncidentType,
+    title: string,
+    description: string
+  ) {
     this.logger.log(
       `Create incident: alertId=${alert.id}, incidentTypeId=${incidentType.id}, serviceId=${incidentType.serviceId}`,
     );
@@ -23,9 +28,9 @@ export class IncidentService {
       // 创建新事件
       const incident = await tx.incident.create({
         data: {
-          title: alert.title,
+          title,
           typeId: incidentType.id,
-          description: alert.content,
+          description,
           severity: 'HIGH',
           serviceId: incidentType.serviceId
         },

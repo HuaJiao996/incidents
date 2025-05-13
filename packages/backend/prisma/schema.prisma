@@ -118,9 +118,10 @@ model IncidentType {
   name             String
   serviceId        Int
   service          Service    @relation(fields: [serviceId], references: [id])
-  description      String?
-  condition        String     @default("") // 匹配时常见Incident，使用Jexl表达式
-  groupCondition   String? // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident
+  title            String     // 使用模板表达式  context中包含alert 例：这是一个#{alert.title}
+  description      String     // 使用模板表达式  context中包含alert 例：这是一个#{alert.description}
+  condition        String     @default("") // 匹配时创建Incident，使用Jexl表达式 context中包含alert
+  groupCondition   String?      // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident 使用Jexl表达式 context中包含当前alert和incident
   priority         Int @default(0)
   incidents        Incident[]
   createdAt        DateTime   @default(now())

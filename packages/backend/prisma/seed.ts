@@ -53,15 +53,16 @@ async function main() {
 
   // 创建事件类型 - 使用Jexl表达式
   await prisma.$executeRaw`
-    INSERT INTO incident_types (id, name, "serviceId", description, condition, "groupCondition", priority, "createdAt", "updatedAt")
+    INSERT INTO incident_types (id, name, "serviceId", title, description, condition, "groupCondition", priority, "createdAt", "updatedAt")
     VALUES 
-      (1, '网站崩溃', 1, '网站无法访问或崩溃', 'title|matches("崩溃")', 'title|matches("崩溃")', 0, NOW(), NOW()),
-      (2, 'API超时', 2, 'API请求响应时间过长', 'title|matches("超时")', 'title == "API超时" && customFields.environment == "production"', 0, NOW(), NOW()),
-      (3, '数据库连接异常', 3, '数据库连接失败或超时', 'title|matches("连接")', NULL, 0, NOW(), NOW()),
-      (4, '复杂前端错误', 1, '复杂的前端系统错误', '(title|matches("前端") && customFields.browser == "Chrome") || (title|matches("UI") && customFields.priority == "high" && content|matches("紧急"))', 'customFields.browser == "Chrome" && ["high", "critical"].includes(customFields.priority)', 1, NOW(), NOW())
+      (1, '网站崩溃', 1, '网站崩溃: #{alert.title}', '发生时间: #{alert.createdAt}\n详细信息: #{alert.content}', 'title|matches("崩溃")', 'incident.status != "RESOLVED" && title|matches("崩溃") && incident.createdAt > (now - 3600000)', 0, NOW(), NOW()),
+      (2, 'API超时', 2, 'API超时告警: #{alert.title}', '接口: #{alert.customFields.endpoint}\n详细信息: #{alert.content}', 'title|matches("超时")', 'incident.status != "RESOLVED" && title == "API超时" && alert.customFields.environment == "production" && incident.serviceId == alert.serviceId', 0, NOW(), NOW()),
+      (3, '数据库连接异常', 3, 'DB异常: #{alert.title}', '查询: #{alert.customFields.query}\n详细信息: #{alert.content}', 'title|matches("连接")', 'incident.status != "RESOLVED" && title|matches("连接") && incident.serviceId == alert.serviceId && incident.createdAt > (now - 1800000)', 0, NOW(), NOW()),
+      (4, '复杂前端错误', 1, '前端错误: #{alert.title} (#{alert.customFields.browser})', '浏览器: #{alert.customFields.browser}\n优先级: #{alert.customFields.priority}\n详细信息: #{alert.content}', '(title|matches("前端") && customFields.browser == "Chrome") || (title|matches("UI") && customFields.priority == "high" && content|matches("紧急"))', 'incident.status != "RESOLVED" && customFields.browser == incident.alerts[0].customFields.browser && ["high", "critical"].includes(customFields.priority) && incident.createdAt > (now - 7200000)', 1, NOW(), NOW())
     ON CONFLICT (id) DO UPDATE 
     SET name = EXCLUDED.name, 
-        "serviceId" = EXCLUDED."serviceId", 
+        "serviceId" = EXCLUDED."serviceId",
+        title = EXCLUDED.title,
         description = EXCLUDED.description, 
         condition = EXCLUDED.condition, 
         "groupCondition" = EXCLUDED."groupCondition",
