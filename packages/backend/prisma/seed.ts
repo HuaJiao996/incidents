@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, IncidentSeverity } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -70,6 +70,40 @@ async function main() {
         "updatedAt" = NOW();
   `;
 
+  // 创建事件类型严重程度条件
+  await prisma.$executeRaw`
+    INSERT INTO incident_type_severity_conditions (id, severity, "incidentTypeId", condition, "order")
+    VALUES 
+      -- 网站崩溃的严重程度条件
+      (1, 'CRITICAL', 1, 'content|matches("完全无法访问") || customFields.affectedUsers > 1000', 0),
+      (2, 'HIGH', 1, 'content|matches("部分功能无法使用") || customFields.affectedUsers > 500', 1),
+      (3, 'MEDIUM', 1, 'content|matches("性能下降") || customFields.affectedUsers > 100', 2),
+      (4, 'LOW', 1, 'true', 3),
+
+      -- API超时的严重程度条件
+      (5, 'CRITICAL', 2, 'customFields.responseTime > 10000 || customFields.errorRate > 0.5', 0),
+      (6, 'HIGH', 2, 'customFields.responseTime > 5000 || customFields.errorRate > 0.3', 1),
+      (7, 'MEDIUM', 2, 'customFields.responseTime > 1000 || customFields.errorRate > 0.1', 2),
+      (8, 'LOW', 2, 'true', 3),
+
+      -- 数据库连接异常的严重程度条件
+      (9, 'CRITICAL', 3, 'content|matches("数据丢失") || content|matches("无法连接")', 0),
+      (10, 'HIGH', 3, 'content|matches("连接超时") || content|matches("性能严重下降")', 1),
+      (11, 'MEDIUM', 3, 'content|matches("查询缓慢") || content|matches("部分延迟")', 2),
+      (12, 'LOW', 3, 'true', 3),
+
+      -- 复杂前端错误的严重程度条件
+      (13, 'CRITICAL', 4, 'customFields.priority == "critical" || (customFields.browser == "Chrome" && customFields.affectedUsers > 1000)', 0),
+      (14, 'HIGH', 4, 'customFields.priority == "high" || (customFields.browser == "Chrome" && customFields.affectedUsers > 500)', 1),
+      (15, 'MEDIUM', 4, 'customFields.priority == "medium" || customFields.affectedUsers > 100', 2),
+      (16, 'LOW', 4, 'true', 3)
+    ON CONFLICT (id) DO UPDATE 
+    SET severity = EXCLUDED.severity,
+        "incidentTypeId" = EXCLUDED."incidentTypeId",
+        condition = EXCLUDED.condition,
+        "order" = EXCLUDED."order";
+  `;
+
   // 创建全局自定义字段
   await prisma.$executeRaw`
     INSERT INTO global_custom_fields (id, path, type, required, "enumValues", "createdAt", "updatedAt")
@@ -77,7 +111,10 @@ async function main() {
       (1, 'timestamp', 'DATE', true, '[]', NOW(), NOW()),
       (2, 'environment', 'ENUM', true, '["development","testing","production"]', NOW(), NOW()),
       (3, 'priority', 'ENUM', false, '["low","medium","high","critical"]', NOW(), NOW()),
-      (4, 'tags', 'ARRAY', false, '[]', NOW(), NOW())
+      (4, 'tags', 'ARRAY', false, '[]', NOW(), NOW()),
+      (5, 'affectedUsers', 'NUMBER', false, '[]', NOW(), NOW()),
+      (6, 'responseTime', 'NUMBER', false, '[]', NOW(), NOW()),
+      (7, 'errorRate', 'NUMBER', false, '[]', NOW(), NOW())
     ON CONFLICT (id) DO UPDATE 
     SET path = EXCLUDED.path, 
         type = EXCLUDED.type, 

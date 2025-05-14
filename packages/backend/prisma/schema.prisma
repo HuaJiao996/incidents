@@ -122,7 +122,7 @@ model IncidentType {
   description       String // 使用模板表达式  context中包含alert 例：这是一个#{alert.description}
   condition         String // 匹配时创建Incident，使用Jexl表达式 context中包含alert
   groupCondition    String? // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident 使用Jexl表达式 context中包含当前alert和incident
-  severityConditons IncidentTypeSeverityCondition[]
+  severityConditions IncidentTypeSeverityCondition[]
   priority          Int                             @default(0)
   incidents         Incident[]
   createdAt         DateTime                        @default(now())
