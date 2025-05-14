@@ -55,9 +55,10 @@ export default <Config>{
        * filter or convert the generated api information, return an apiDescriptor, if this function is not specified, the apiDescripor object is not converted
        */
       handleApi: apiDescriptor => {
+        if (!apiDescriptor.url.startsWith('/api')) return
         apiDescriptor.operationId = apiDescriptor.operationId?.replace(/.*Controller_/, '');
         apiDescriptor.tags = apiDescriptor.tags?.map(tag => tag.toLowerCase());
-       return apiDescriptor;
+        return apiDescriptor;
       }
     }
   ]

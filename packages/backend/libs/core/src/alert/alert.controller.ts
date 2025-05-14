@@ -1,21 +1,36 @@
 import { Body, Controller, Param, Post } from '@nestjs/common';
 import { AlertService } from './alert.service';
-import { AlertDto } from './dto/alert.dto';
+import { CreateAlertDto } from './dto/create-alert.dto';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AlertCreatedResponseDto } from './dto/alert-created.response.dto';
 
-@Controller('alert')
+@Controller('alerts')
 export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 
   @Post()
-  async receive(@Body() alertDto: AlertDto) {
-    return this.alertService.receive(alertDto);
+  @ApiResponse({
+    status: 201,
+    type: AlertCreatedResponseDto,
+  })
+  async createAlert(@Body() createAlertDto: CreateAlertDto): Promise<AlertCreatedResponseDto> {
+    return this.alertService.createAlert(createAlertDto);
   }
 
-  @Post(':serviceId')
-  async receiveWithServiceId(
+  @Post('services/:serviceId')
+  @ApiParam({
+    name: 'serviceId',
+    type: 'number',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 201,
+    type: AlertCreatedResponseDto,
+  })
+  async createAlertForService(
     @Param('serviceId') serviceId: string,
-    @Body() alertDto: AlertDto,
-  ) {
-    return this.alertService.receiveWithServiceId(alertDto, +serviceId);
+    @Body() createAlertDto: CreateAlertDto,
+  ): Promise<AlertCreatedResponseDto> {
+    return this.alertService.createAlertForService(createAlertDto, +serviceId);
   }
 }

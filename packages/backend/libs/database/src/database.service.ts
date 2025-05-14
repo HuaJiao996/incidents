@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit, Logger } from '@nestjs/common';
-import { PrismaClient, Prisma } from './prisma';
+import { PrismaClient } from '@prisma/client';
 
 // 定义扩展的 Prisma 客户端类型
 type ExtendPrismaClient = ReturnType<typeof createPrismaExtension>;

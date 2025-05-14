@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { DatabaseService } from '@libs/database';
-import { Alert, IncidentSeverity, IncidentType } from '@libs/database/prisma';
 import { RuleEngine } from '@libs/common/rengine';
 import { tryit } from 'radash';
+import { Alert, IncidentSeverity, IncidentType } from '@prisma/client';
 
 @Injectable()
 export class IncidentService {

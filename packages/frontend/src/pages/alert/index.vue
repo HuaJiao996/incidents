@@ -9,31 +9,13 @@ import Calendar from 'primevue/calendar';
 import InputText from 'primevue/inputtext';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
-import { useRequest } from 'alova/client';
+import { useRequest, usePagination } from 'alova/client';
 import Apis from '@/api'
 
 const { t } = useI18n();
 
-const { data: alerts , loading} = useRequest(Apis.alert.findAll)
+const {data: alerts, loading} = usePagination((page, pageSize) => Apis.alert.findAll({ params: { page, pageSize }}))
 
-const serviceOptions = ref([
-  { label: t('alert.type.all'), value: '' },
-  { label: '订单服务', value: '订单服务' },
-  { label: '用户服务', value: '用户服务' },
-  { label: '支付服务', value: '支付服务' }
-]);
-
-// 筛选条件
-const filters = ref({
-  type: '',
-  service: '',
-  dateRange: null,
-  search: ''
-});
-
-// 排序
-const sortField = ref('createdAt');
-const sortOrder = ref(-1);
 
 // 定义路由 meta
 definePage({
@@ -50,37 +32,15 @@ definePage({
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-semibold mb-6">{{ t('alert.title') }}</h1>
-
-    <!-- 筛选栏 -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
-      <Dropdown v-model="filters.service" :options="serviceOptions" optionLabel="label" optionValue="value"
-        :placeholder="t('alert.service')" class="w-full" />
-      <Calendar v-model="filters.dateRange" selectionMode="range" :placeholder="t('alert.dateRange')" class="w-full" showIcon />
-      <span class="p-input-icon-left w-full">
-        <InputGroup>
-          <InputGroupAddon>
-            <i class="pi pi-search" />
-          </InputGroupAddon>
-          <InputText v-model="filters.search" :placeholder="t('alert.searchPlaceholder')" class="w-full" />
-        </InputGroup>
-      </span>
-    </div>
-
-    <!-- 排序标签 -->
-    <div class="flex gap-2 mb-4">
-      <Button variant="text">
-        {{ t('common.createTime') }}
-        <i class="pi pi-angle-down ml-1" v-if="sortField === 'createdAt' && sortOrder === 1"></i>
-        <i class="pi pi-angle-up ml-1" v-if="sortField === 'createdAt' && sortOrder === -1"></i>
-      </Button>
-    </div>
-
-    <!-- 数据表格 -->
-    <DataTable :value="alerts" :loading="loading" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]"
+    <DataTable :value="alerts" :loading="loading" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]"
       responsiveLayout="scroll">
       <Column field="id" header="ID" style="width: 8%" />
       <Column field="title" :header="t('common.title')" style="width: 25%" />
-      <Column field="service.name" :header="t('alert.service')" style="width: 15%" />
+      <Column field="service" :header="t('alert.service')" style="width: 15%" >
+        <template #body="slotProps">
+          <Button variant="link" :label="`#${slotProps.data.service.id}:${slotProps.data.service.name}`" />
+        </template>
+      </Column>
       <Column field="incidentId" :header="t('alert.relatedIncident')" style="width: 15%" >
         <template #body="slotProps">
           <Button variant="link" :label="`#${slotProps.data.incidentId}`" />
@@ -89,9 +49,10 @@ definePage({
       <Column field="createdAt" :header="t('common.createTime')" style="width: 17%" />
       <Column :header="t('common.actions')" style="width: 8%">
         <template #body>
-          <Button icon="pi pi-eye" class="p-button-text p-button-sm" :label="t('common.view')" />
+          <Button icon="pi pi-eye" variant="text" :label="t('common.view')" />
         </template>
       </Column>
+
     </DataTable>
   </div>
 </template>

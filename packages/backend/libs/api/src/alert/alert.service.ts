@@ -1,5 +1,6 @@
 import { DatabaseService } from '@libs/database';
 import { Injectable } from '@nestjs/common';
+import { AlertResponseDto } from './dto/alert.response.dto';
 
 @Injectable()
 export class AlertService {
@@ -7,14 +8,23 @@ export class AlertService {
 
   }
 
-  async findAll() {
+  async findAll(page: number, pageSize: number): Promise<AlertResponseDto> {
     const alerts = await this.database.client.alert.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       include: {
         service: true,
       }
     });
 
-    return alerts;
+    const totalNumber= await this.database.client.alert.count();
+
+    return {
+      page,
+      pageSize,
+      data: alerts,
+      totalNumber
+    };
   }
 
   findOne(id: number) {

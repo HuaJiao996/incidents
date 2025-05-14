@@ -3,7 +3,7 @@ import { Job } from 'bullmq';
 import { IncidentService } from './incident.service';
 import { Logger } from '@nestjs/common';
 import { DatabaseService } from '@libs/database';
-import { IncidentSeverity } from '@libs/database/prisma';
+import { IncidentSeverity } from '@prisma/client';
 
 interface ProcessIncidentJob {
   incidentId: number;

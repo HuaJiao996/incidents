@@ -5,8 +5,8 @@ import { DatabaseService } from '@libs/database';
 import { RuleEngine } from '@libs/common/rengine';
 import { tryit } from 'radash';
 import { IncidentService } from '../incident/incident.service';
-import { Alert, Incident, IncidentStatus, IncidentType } from '@libs/database/prisma';
 import { compileTemplate } from '@libs/common/template';
+import { Alert, Incident, IncidentStatus, IncidentType } from '@prisma/client';
 
 @Processor('alertQueue')
 export class AlertProcessor extends WorkerHost {

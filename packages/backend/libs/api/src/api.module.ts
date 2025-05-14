@@ -8,7 +8,14 @@ import { IncidentTypeModule } from './incident-type/incident-type.module';
 import { ServiceRouteModule } from './service-route/service-route.module';
 import { GlobalCustomFieldModule } from './global-custom-field/global-custom-field.module';
 
-const modules = [ServiceModule];
+const modules = [
+  ServiceModule,
+  AlertModule,
+  IncidentModule,
+  IncidentTypeModule,
+  ServiceRouteModule,
+  GlobalCustomFieldModule,
+];
 
 @Module({
   imports: [
@@ -20,11 +27,6 @@ const modules = [ServiceModule];
       },
     ]),
     ...modules,
-    AlertModule,
-    IncidentModule,
-    IncidentTypeModule,
-    ServiceRouteModule,
-    GlobalCustomFieldModule,
   ],
 })
 export class ApiModule {}

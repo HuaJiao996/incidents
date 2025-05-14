@@ -1,14 +1,20 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { AlertDto } from './dto/alert.dto';
+import { CreateAlertDto } from './dto/create-alert.dto';
 import { get } from 'radash';
 import { DatabaseService } from '@libs/database';
 import { RedisService } from '@libs/redis';
 import { CustomFieldValidationException } from '@libs/common/exceptions/custom-field-validation.exception';
 import { RuleEngine } from '@libs/common/rengine';
 import { customFieldValidators } from '@libs/common/validators/custom-field.validator';
-import { GlobalCustomField, ServiceCustomField } from '@libs/database/prisma';
+import { AlertCreatedResponseDto } from './dto/alert-created.response.dto';
+import { GlobalCustomField, ServiceCustomField } from '@prisma/client';
+
+interface ValidationResult {
+  valid: boolean;
+  errors: Array<{ field: string; reason: string }>;
+}
 
 @Injectable()
 export class AlertService {
@@ -20,21 +26,23 @@ export class AlertService {
     private readonly redisService: RedisService,
   ) {}
 
-  private async checkGlobalCustomField(alertDto: AlertDto) {
+  private async validateGlobalCustomFields(createAlertDto: CreateAlertDto): Promise<ValidationResult> {
     const globalCustomFields = await this.databaseService.client.globalCustomField.findMany();
-    return this.checkCustomField(alertDto, globalCustomFields);
+    return this.validateCustomFields(createAlertDto, globalCustomFields);
   }
 
-  private checkCustomField(alertDto: AlertDto, customFields: (GlobalCustomField | ServiceCustomField)[]) {
+  private validateCustomFields(
+    createAlertDto: CreateAlertDto, 
+    customFields: (GlobalCustomField | ServiceCustomField)[]
+  ): ValidationResult {
     const errors: { field: string; reason: string }[] = [];
 
     for (const customField of customFields) {
       this.logger.debug(customField);
-      const fieldValue = get<unknown>(alertDto.customFields, customField.path);
+      const fieldValue = get<unknown>(createAlertDto.customFields, customField.path);
 
-      // 使用验证器检查类型
-      const matcher = customFieldValidators[customField.type];
-      if (!matcher) {
+      const validator = customFieldValidators[customField.type];
+      if (!validator) {
         errors.push({
           field: customField.path,
           reason: `Unknown field type: ${customField.type}`,
@@ -42,7 +50,7 @@ export class AlertService {
         continue;
       }
 
-      const result = matcher(
+      const result = validator(
         customField.required,
         fieldValue,
         customField.enumValues,
@@ -50,35 +58,31 @@ export class AlertService {
       if (!result.valid) {
         errors.push({
           field: customField.path,
-          reason: `${result.reason}`,
+          reason: result.reason || `Invalid value for field type: ${customField.type}`,
         });
-        continue;
       }
-
-      this.logger.debug(fieldValue);
     }
 
-    if (errors.length > 0) {
-      return { valid: false, errors };
-    }
-
-    return { valid: true, errors: [] };
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
   }
 
-  async receive(alertDto: AlertDto) {
-    const globalFieldCheck = await this.checkGlobalCustomField(alertDto);
-    if (!globalFieldCheck.valid) {
+  async createAlert(createAlertDto: CreateAlertDto): Promise<AlertCreatedResponseDto> {
+    const globalFieldValidation = await this.validateGlobalCustomFields(createAlertDto);
+    if (!globalFieldValidation.valid) {
       throw new CustomFieldValidationException(
-        globalFieldCheck.errors,
+        globalFieldValidation.errors,
         'Global custom field validation failed',
       );
     }
-    const serviceRoutes = await this.databaseService.client.serviceRoute.findMany()
 
-    this.logger.debug(serviceRoutes)
+    const serviceRoutes = await this.databaseService.client.serviceRoute.findMany();
+    this.logger.debug(serviceRoutes);
+
     const engine = new RuleEngine<number>();
     serviceRoutes.forEach((serviceRoute) => {
-      // 确保 condition 不为空
       if (serviceRoute.condition) {
         engine.appendRule(
           serviceRoute.condition,
@@ -87,77 +91,70 @@ export class AlertService {
         );
       }
     });
-    const serviceId = await engine
-      .run(alertDto);
-      
-    return this.receiveWithServiceId(alertDto, serviceId, false);
+
+    const serviceId = await engine.run(createAlertDto);
+    return this.createAlertForService(createAlertDto, serviceId, false);
   }
 
-  async receiveWithServiceId(
-    alertDto: AlertDto,
+  async createAlertForService(
+    createAlertDto: CreateAlertDto,
     serviceId?: number,
-    checkGlobalCustomField: boolean = true,
-  ) {
+    validateGlobalFields: boolean = true,
+  ): Promise<AlertCreatedResponseDto> {
     if (!serviceId) {
       throw new HttpException(
-        "Don't matched any service",
+        "No matching service found",
         HttpStatus.NOT_FOUND,
       );
     }
 
-    if (checkGlobalCustomField) {
-      const globalFieldCheck = await this.checkGlobalCustomField(alertDto);
-      if (!globalFieldCheck.valid) {
+    if (validateGlobalFields) {
+      const globalFieldValidation = await this.validateGlobalCustomFields(createAlertDto);
+      if (!globalFieldValidation.valid) {
         throw new CustomFieldValidationException(
-          globalFieldCheck.errors,
+          globalFieldValidation.errors,
           'Global custom field validation failed',
         );
       }
     }
 
     const service = await this.databaseService.client.service.findUnique({
-      where: {
-        id: serviceId
-      },
-      include: {
-        customFields: true
-      }
+      where: { id: serviceId },
+      include: { customFields: true }
     });
       
     if (!service) {
       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
     }
 
-    const serviceFieldCheck = this.checkCustomField(
-      alertDto,
+    const serviceFieldValidation = this.validateCustomFields(
+      createAlertDto,
       service.customFields,
     );
-    if (!serviceFieldCheck.valid) {
+    if (!serviceFieldValidation.valid) {
       throw new CustomFieldValidationException(
-        serviceFieldCheck.errors,
+        serviceFieldValidation.errors,
         `Service (${service.name}) custom field validation failed`,
       );
     }
 
     const alertData = await this.databaseService.client.alert.create({
       data: {
-        content: alertDto.content,
-        title: alertDto.title,
-        customFields: alertDto.customFields ? JSON.parse(JSON.stringify(alertDto.customFields)) : undefined,
-        serviceId: serviceId,
+        content: createAlertDto.content,
+        title: createAlertDto.title,
+        customFields: createAlertDto.customFields 
+          ? JSON.parse(JSON.stringify(createAlertDto.customFields)) 
+          : undefined,
+        serviceId,
       },
-      select: {
-        id: true
-      }
+      select: { id: true }
     });
 
-    const alertId = alertData.id;
-
-    await this.alertQueue.add('alert', alertId);
+    await this.alertQueue.add('alert', alertData.id);
 
     return {
-      alertId,
+      alertId: alertData.id,
       serviceId
-    }
+    };
   }
 }
