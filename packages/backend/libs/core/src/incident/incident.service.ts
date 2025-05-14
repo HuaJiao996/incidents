@@ -2,7 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { DatabaseService } from '@libs/database';
-import { Alert, IncidentType } from '@libs/database/prisma';
+import { Alert, IncidentSeverity, IncidentType } from '@libs/database/prisma';
+import { RuleEngine } from '@libs/common/rengine';
+import { tryit } from 'radash';
 
 @Injectable()
 export class IncidentService {
@@ -13,15 +15,83 @@ export class IncidentService {
     private readonly databaseService: DatabaseService,
   ) {}
 
+  /**
+   * 根据告警内容和事件类型的条件判断严重程度
+   */
+  private async determineSeverity(
+    alert: Alert,
+    incidentType: IncidentType,
+  ): Promise<IncidentSeverity> {
+    // 获取事件类型的所有严重程度条件
+    const severityConditions = await this.databaseService.client.incidentTypeSeverityCondition.findMany({
+      where: { incidentTypeId: incidentType.id },
+      orderBy: { order: 'asc' },
+    });
+
+    if (!severityConditions || severityConditions.length === 0) {
+      this.logger.warn(`No severity conditions found for incident type ${incidentType.id}, using default HIGH`);
+      return IncidentSeverity.HIGH;
+    }
+
+    // 创建规则引擎实例
+    const severityChecker = new RuleEngine<IncidentSeverity>();
+
+    // 添加所有严重程度条件
+    severityConditions.forEach((condition) => {
+      severityChecker.appendRule(
+        condition.condition,
+        condition.severity,
+        -condition.order, // 注意：这里取负数是因为RuleEngine按优先级降序排列，而我们的order是升序
+      );
+    });
+
+    // 准备评估上下文
+    const context = {
+      alert,
+      title: alert.title,
+      content: alert.content,
+      customFields: alert.customFields || {},
+    };
+
+    // 执行规则评估
+    const [error, matchedSeverity] = await tryit(() => 
+      severityChecker.run(context)
+    )();
+
+    if (error) {
+      this.logger.error(
+        `Error evaluating severity conditions: ${error.message}`,
+        error.stack,
+      );
+      return IncidentSeverity.HIGH;
+    }
+
+    if (!matchedSeverity) {
+      this.logger.warn(
+        `No matching severity condition found for incident type ${incidentType.id}, using lowest severity`,
+      );
+      return severityConditions[severityConditions.length - 1].severity;
+    }
+
+    this.logger.debug(
+      `Determined severity ${matchedSeverity} for alert ${alert.id}`,
+    );
+    return matchedSeverity;
+  }
+
   async createIncident(
     alert: Alert, 
     incidentType: IncidentType,
     title: string,
-    description: string
+    description: string,
   ) {
     this.logger.log(
       `Create incident: alertId=${alert.id}, incidentTypeId=${incidentType.id}, serviceId=${incidentType.serviceId}`,
     );
+    
+    // 确定事件严重程度
+    const severity = await this.determineSeverity(alert, incidentType);
+    this.logger.log(`Determined severity: ${severity} for alert ${alert.id}`);
     
     // 使用 Prisma 事务创建事件并更新告警
     const result = await this.databaseService.client.$transaction(async (tx) => {
@@ -31,7 +101,7 @@ export class IncidentService {
           title,
           typeId: incidentType.id,
           description,
-          severity: 'HIGH',
+          severity,
           serviceId: incidentType.serviceId
         },
       });
@@ -47,8 +117,12 @@ export class IncidentService {
 
     this.logger.log(`Incident created successfully: incidentId=${result.incident.id}`);
 
-    // TODO: 触发事件分配流程
-    // await this.assignIncident(incidentId);
+    // 添加到处理队列
+    await this.incidentQueue.add('process', {
+      incidentId: result.incident.id,
+      severity,
+      serviceId: incidentType.serviceId,
+    });
 
     return result.incident.id;
   }

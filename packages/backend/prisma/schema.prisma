@@ -114,20 +114,32 @@ model ServiceCustomField {
 }
 
 model IncidentType {
-  id               Int        @id @default(autoincrement())
-  name             String
-  serviceId        Int
-  service          Service    @relation(fields: [serviceId], references: [id])
-  title            String     // 使用模板表达式  context中包含alert 例：这是一个#{alert.title}
-  description      String     // 使用模板表达式  context中包含alert 例：这是一个#{alert.description}
-  condition        String     @default("") // 匹配时创建Incident，使用Jexl表达式 context中包含alert
-  groupCondition   String?      // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident 使用Jexl表达式 context中包含当前alert和incident
-  priority         Int @default(0)
-  incidents        Incident[]
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  id                Int                             @id @default(autoincrement())
+  name              String
+  serviceId         Int
+  service           Service                         @relation(fields: [serviceId], references: [id])
+  title             String // 使用模板表达式  context中包含alert 例：这是一个#{alert.title}
+  description       String // 使用模板表达式  context中包含alert 例：这是一个#{alert.description}
+  condition         String // 匹配时创建Incident，使用Jexl表达式 context中包含alert
+  groupCondition    String? // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident 使用Jexl表达式 context中包含当前alert和incident
+  severityConditons IncidentTypeSeverityCondition[]
+  priority          Int                             @default(0)
+  incidents         Incident[]
+  createdAt         DateTime                        @default(now())
+  updatedAt         DateTime                        @updatedAt
 
   @@map("incident_types")
+}
+
+model IncidentTypeSeverityCondition {
+  id             Int              @id @default(autoincrement())
+  severity       IncidentSeverity
+  incidentTypeId Int
+  incidentType   IncidentType     @relation(fields: [incidentTypeId], references: [id])
+  condition      String // 使用Jexl表达式
+  order          Int
+
+  @@map("incident_type_severity_conditions")
 }
 
 model GlobalCustomField {
@@ -160,18 +172,18 @@ model Alert {
 }
 
 model Incident {
-  id               Int              @id @default(autoincrement())
-  title            String
-  description      String?
-  status           IncidentStatus   @default(OPEN)
-  severity         IncidentSeverity
-  serviceId        Int
-  service          Service          @relation(fields: [serviceId], references: [id])
-  typeId           Int?
-  type             IncidentType?    @relation(fields: [typeId], references: [id])
-  alerts           Alert[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String?
+  status      IncidentStatus   @default(OPEN)
+  severity    IncidentSeverity
+  serviceId   Int
+  service     Service          @relation(fields: [serviceId], references: [id])
+  typeId      Int?
+  type        IncidentType?    @relation(fields: [typeId], references: [id])
+  alerts      Alert[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@map("incidents")
 }
