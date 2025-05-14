@@ -18,6 +18,9 @@ export class ServiceService {
           serviceId: service.id,
           priority: 0,
           description: 'Default Incident',
+          title: 'Default Incident',
+          condition: 'true',
+          groupCondition: 'true',
         }
       });
 

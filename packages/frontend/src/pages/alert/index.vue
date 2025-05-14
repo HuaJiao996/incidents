@@ -10,7 +10,7 @@ import InputText from 'primevue/inputtext';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
 import { useRequest } from 'alova/client';
-import Apis from '../../api'
+import Apis from '@/api'
 
 const { t } = useI18n();
 
@@ -68,7 +68,7 @@ definePage({
 
     <!-- 排序标签 -->
     <div class="flex gap-2 mb-4">
-      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'createdAt' }">
+      <Button variant="text">
         {{ t('common.createTime') }}
         <i class="pi pi-angle-down ml-1" v-if="sortField === 'createdAt' && sortOrder === 1"></i>
         <i class="pi pi-angle-up ml-1" v-if="sortField === 'createdAt' && sortOrder === -1"></i>
@@ -81,7 +81,11 @@ definePage({
       <Column field="id" header="ID" style="width: 8%" />
       <Column field="title" :header="t('common.title')" style="width: 25%" />
       <Column field="service.name" :header="t('alert.service')" style="width: 15%" />
-      <Column field="incidentId" :header="t('alert.relatedIncident')" style="width: 15%" />
+      <Column field="incidentId" :header="t('alert.relatedIncident')" style="width: 15%" >
+        <template #body="slotProps">
+          <Button variant="link" :label="`#${slotProps.data.incidentId}`" />
+        </template>
+      </Column>
       <Column field="createdAt" :header="t('common.createTime')" style="width: 17%" />
       <Column :header="t('common.actions')" style="width: 8%">
         <template #body>
