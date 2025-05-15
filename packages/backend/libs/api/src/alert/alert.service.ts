@@ -4,9 +4,7 @@ import { AlertResponseDto } from './dto/alert.response.dto';
 
 @Injectable()
 export class AlertService {
-  constructor (private readonly database: DatabaseService) {
-
-  }
+  constructor(private readonly database: DatabaseService) {}
 
   async findAll(page: number, pageSize: number): Promise<AlertResponseDto> {
     const alerts = await this.database.client.alert.findMany({
@@ -14,16 +12,16 @@ export class AlertService {
       take: pageSize,
       include: {
         service: true,
-      }
+      },
     });
 
-    const totalNumber= await this.database.client.alert.count();
+    const total = await this.database.client.alert.count();
 
     return {
       page,
       pageSize,
       data: alerts,
-      totalNumber
+      total,
     };
   }
 

@@ -47,11 +47,10 @@ function getDefaultIcon(path: string): string {
 <template>
   <div class="min-h-screen">
     <!-- 顶部导航栏 -->
-    <div class="fixed top-0 left-0 w-full h-16 shadow-sm z-50 bg-surface">
-      <div class="flex justify-between items-center w-full px-4 h-full">
+    <div class="fixed top-0 left-0 w-full shadow-sm z-50 bg-surface">
         <Menubar :model="menuItems" class="border-none bg-transparent flex-1">
           <template #start>
-            <div class="flex items-center mr-4">
+            <div class="flex items-center ml-2 mr-4">
               <img :src="logo" alt="Incidents Logo" class="w-8 h-8" />
               <span class="ml-2 text-xl font-bold text-primary">Incidents</span>
             </div>
@@ -82,15 +81,14 @@ function getDefaultIcon(path: string): string {
               <div class="flex items-center gap-2">
                 <LanguageSwitcher />
                 <ThemeSwitcher />
-                <Button 
-                  icon="pi pi-user" 
-                  class="p-button-text !w-10 !h-10 !rounded-full" 
+                <Button
+                  icon="pi pi-user"
+                  class="p-button-text !w-10 !h-10 !rounded-full"
                 />
               </div>
             </div>
           </template>
         </Menubar>
-      </div>
     </div>
 
     <!-- 主内容区域 -->
@@ -99,68 +97,3 @@ function getDefaultIcon(path: string): string {
     </div>
   </div>
 </template>
-
-<style>
-/* 主题相关的自定义类 */
-.bg-surface {
-  background-color: var(--surface-card);
-}
-
-.text-primary {
-  color: var(--primary-color);
-}
-
-.text-default {
-  color: var(--text-color);
-}
-
-.bg-hover:hover {
-  background-color: var(--surface-hover);
-}
-
-/* PrimeVue 组件样式覆盖 */
-.p-menubar {
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-}
-
-.p-menubar-root-list {
-  gap: 0.5rem !important;
-}
-
-.p-menuitem-link {
-  padding: 0.75rem 1.25rem !important;
-}
-
-.p-button.p-button-text {
-  background: transparent;
-  color: var(--text-color);
-  border-color: transparent;
-}
-
-.p-button.p-button-text:enabled:hover {
-  background: var(--surface-hover);
-  color: var(--text-color);
-  border-color: transparent;
-}
-
-/* 确保菜单项在深色模式下正确显示 */
-:root[data-theme='dark'] {
-  .p-menuitem-link:not(.p-disabled):hover {
-    background-color: var(--surface-hover);
-  }
-
-  .p-menubar {
-    background-color: var(--surface-card) !important;
-  }
-
-  .p-menuitem-text {
-    color: var(--text-color);
-  }
-
-  .p-menuitem-icon {
-    color: var(--text-color);
-  }
-}
-</style>

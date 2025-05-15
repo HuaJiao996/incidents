@@ -138,7 +138,7 @@ export type AlertResponseDto = {
   /**
    * [required]
    */
-  total: number;
+  totalNumber: number;
   /**
    * [required]
    */
@@ -338,7 +338,7 @@ declare global {
        *     updatedAt: string
        *   }>
        *   // [required]
-       *   total: number
+       *   totalNumber: number
        *   // [required]
        *   page: number
        *   // [required]

@@ -1,5 +1,5 @@
 export class PaginationDto {
-  totalNumber: number;
+  total: number;
   page: number;
   pageSize: number;
 }
