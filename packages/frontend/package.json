@@ -23,6 +23,7 @@
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.36.8",
     "@primeuix/themes": "^1.0.3",
+    "@primevue/core": "^4.3.4",
     "@tailwindcss/vite": "^4.1.4",
     "alova": "^3.2.10",
     "primeicons": "^7.0.0",

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { AlertService } from './alert.service';
 import { ApiOperation, ApiResponse, ApiTags, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { AlertResponseDto } from './dto/alert.response.dto';
-import { AlertPaginationParamsDto } from './dto/alert-pagination.params.dto';
+import { AlertPaginationQueryDto } from './dto/alert-pagination.query.dto';
 
 @Controller('alert')
 export class AlertController {
@@ -23,7 +23,27 @@ export class AlertController {
     type: Number,
     required: true,
   })
-  findAll(@Query() params: AlertPaginationParamsDto): Promise<AlertResponseDto> {
-    return this.alertService.findAll(params.page, params.pageSize);
+  @ApiQuery({
+    name: 'title',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'service',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'dateRange',
+    type: [Date],
+    required: false,
+  })
+  @ApiQuery({
+    name: 'orderBy',
+    type: String,
+    required: false,
+  })
+  findAll(@Query() params: AlertPaginationQueryDto): Promise<AlertResponseDto> {
+    return this.alertService.findAll(params.page, params.pageSize, params.title, params.service, params.dateRange, params.orderBy);
   }
 }
