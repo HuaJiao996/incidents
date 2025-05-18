@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, effect, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import DataTable, { type DataTableFilterMeta } from 'primevue/datatable'
+import DataTable, { type DataTableFilterMeta, type DataTableSortMeta } from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
@@ -15,12 +15,6 @@ import Paginator from 'primevue/paginator'
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 
 const { t } = useI18n()
-
-const statusOptions = [
-  { label: t('alert.status.all'), value: null },
-  { label: t('alert.status.active'), value: 'active' },
-  { label: t('alert.status.resolved'), value: 'resolved' }
-]
 
 const {
   data: alerts,
@@ -56,15 +50,13 @@ const filters = ref<DataTableFilterMeta>({
   service: { value: null, matchMode: FilterMatchMode.CONTAINS },
   title: { value: null, matchMode: FilterMatchMode.CONTAINS },
   incidentId: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  createdAt: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
 })
+
+const multiSortMeta = ref<DataTableSortMeta[]>()
 
 effect(() => {
-  console.log(filters.value)
+  console.log(multiSortMeta.value)
 })
-
-
 
 definePage({
   meta: {
@@ -98,6 +90,9 @@ definePage({
 
       v-model:filters="filters"
       filterDisplay="row"
+
+      v-model:multi-sort-meta="multiSortMeta"
+      sort-mode="multiple"
     >
       <Column field="id" header="ID" style="width: 8%" />
       <Column field="title" sortable :header="t('common.title')" style="width: 25%" >
@@ -105,7 +100,7 @@ definePage({
           <InputText v-model="filterModel.value" type="text" />
         </template>
       </Column>
-      <Column field="service" :header="t('alert.service')" style="width: 15%">
+      <Column field="service" sortable :header="t('alert.service')" style="width: 15%">
         <template #body="slotProps">
           <Button
             variant="link"
@@ -116,7 +111,7 @@ definePage({
           <InputText v-model="filterModel.value" type="text" />
         </template>
       </Column>
-      <Column field="incidentId" :header="t('alert.relatedIncident')" style="width: 15%">
+      <Column field="incidentId" sortable :header="t('alert.relatedIncident')" style="width: 15%">
         <template #body="slotProps">
           <Button variant="link" :label="`#${slotProps.data.incidentId}`" />
         </template>
@@ -124,10 +119,7 @@ definePage({
           <InputText v-model="filterModel.value" type="text" />
         </template>
       </Column>
-      <Column field="createdAt" :header="t('common.createTime')" style="width: 17%" >
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" />
-        </template>
+      <Column field="createdAt" sortable :header="t('common.createTime')" style="width: 17%" >
       </Column>
       <Column :header="t('common.actions')" style="width: 8%">
         <template #body>

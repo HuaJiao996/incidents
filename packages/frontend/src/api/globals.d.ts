@@ -138,7 +138,7 @@ export type AlertResponseDto = {
   /**
    * [required]
    */
-  totalNumber: number;
+  total: number;
   /**
    * [required]
    */
@@ -306,6 +306,10 @@ declare global {
        * **Query Parameters**
        * ```ts
        * type QueryParameters = {
+       *   orderBy?: string
+       *   dateRange?: string[]
+       *   service?: string
+       *   title?: string
        *   // [required]
        *   pageSize: number
        *   // [required]
@@ -338,7 +342,7 @@ declare global {
        *     updatedAt: string
        *   }>
        *   // [required]
-       *   totalNumber: number
+       *   total: number
        *   // [required]
        *   page: number
        *   // [required]
@@ -349,6 +353,10 @@ declare global {
       findAll<
         Config extends Alova2MethodConfig<AlertResponseDto> & {
           params: {
+            orderBy?: string;
+            dateRange?: string[];
+            service?: string;
+            title?: string;
             /**
              * [required]
              */
