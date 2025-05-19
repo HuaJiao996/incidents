@@ -17,9 +17,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     try {
       await this._prisma.$connect();
-      this.logger.log('数据库连接成功');
+      this.logger.log('Database connected');
     } catch (error) {
-      this.logger.error('数据库连接失败', error);
+      this.logger.error('Database connection failed', error);
       throw error;
     }
   }
@@ -27,9 +27,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   async onModuleDestroy() {
     try {
       await this._prisma.$disconnect();
-      this.logger.log('数据库断开连接成功');
+      this.logger.log('Database disconnected');
     } catch (error) {
-      this.logger.error('数据库断开连接失败', error);
+      this.logger.error('Database disconnection failed', error);
       throw error;
     }
   }

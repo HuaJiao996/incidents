@@ -22,7 +22,6 @@ export default {
   'service.findOne': ['GET', '/api/service/{id}'],
   'service.update': ['PATCH', '/api/service/{id}'],
   'alert.findAll': ['GET', '/api/alert'],
-  'incident.create': ['POST', '/api/incident'],
   'incident.findAll': ['GET', '/api/incident'],
   'incident.findOne': ['GET', '/api/incident/{id}'],
   'incident.update': ['PATCH', '/api/incident/{id}'],

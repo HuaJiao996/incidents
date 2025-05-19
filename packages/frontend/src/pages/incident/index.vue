@@ -1,129 +1,74 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import DataTable from 'primevue/datatable';
+import { useRouter } from 'vue-router';
+import DataTable, { type DataTableSortMeta } from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
 import InputText from 'primevue/inputtext';
+import DatePicker from 'primevue/datepicker';
+import MultiSelect from 'primevue/multiselect';
+import { usePagination } from 'alova/client';
+import Apis from '@/api';
+import { startOfDay, endOfDay, format } from 'date-fns';
+import { usePageOffset } from '@/composables/usePageOffset';
+import type { IncidentResponseDto } from '@/api/globals';
 
 const { t } = useI18n();
 
-// 定义事件数据结构
-interface Incident {
-  id: string;
-  title: string;
-  status: string;
-  assignee: string;
-  type: string;
-  service: string;
-  createdAt: string;
-  updatedAt: string;
-}
+const multiSortMeta = ref<DataTableSortMeta[]>([]);
+const selectedIncidents = ref<IncidentResponseDto[]>([]);
 
-// 模拟数据
-const incidents = ref<Incident[]>([
-  {
-    id: '#2023001',
-    title: '数据库连接异常',
-    status: '已触发',
-    assignee: '刘志强',
-    createdAt: '2023-10-27 14:30',
-    updatedAt: '2023-10-27 15:45',
-    service: '数据库服务',
-    type: '系统异常'
-  },
-  {
-    id: '#2023002',
-    title: 'API 响应超时',
-    status: '处理中',
-    assignee: '张雨萱',
-    createdAt: '2023-10-27 10:15',
-    updatedAt: '2023-10-27 11:30',
-    service: 'API 网关',
-    type: '性能问题'
-  },
-  {
-    id: '#2023003',
-    title: '服务器 CPU 使用率过高',
-    status: '已解决',
-    assignee: '王建国',
-    createdAt: '2023-10-26 16:20',
-    updatedAt: '2023-10-27 09:15',
-    service: '计算服务',
-    type: '资源告警'
-  }
-]);
-
-// 筛选选项
-const statusOptions = ref([
-  { label: t('incident.status.all'), value: '' },
-  { label: t('incident.status.triggered'), value: '已触发' },
-  { label: t('incident.status.processing'), value: '处理中' },
-  { label: t('incident.status.resolved'), value: '已解决' }
-]);
-
-const assigneeOptions = ref([
-  { label: '全部负责人', value: '' },
-  { label: '刘志强', value: '刘志强' },
-  { label: '张雨萱', value: '张雨萱' },
-  { label: '王建国', value: '王建国' }
-]);
-
-const typeOptions = ref([
-  { label: '全部类型', value: '' },
-  { label: '系统异常', value: '系统异常' },
-  { label: '性能问题', value: '性能问题' },
-  { label: '资源告警', value: '资源告警' }
-]);
-
-const serviceOptions = ref([
-  { label: '全部服务', value: '' },
-  { label: '数据库服务', value: '数据库服务' },
-  { label: 'API 网关', value: 'API 网关' },
-  { label: '计算服务', value: '计算服务' }
-]);
-
-// 筛选条件
 const filters = ref({
-  status: '',
-  assignee: '',
-  type: '',
-  service: '',
-  dateRange: null,
-  search: ''
+  service: [] as string[],
+  title: '',
+  incidentId: '',
+  status: [] as string[],
+  assignee: [] as string[],
+  updatedAtRange: [null, null] as [Date | null, Date | null],
+  dateRange: [startOfDay(new Date()), endOfDay(new Date())] as [Date, Date]
 });
 
-// 排序
-const sortField = ref('createdAt');
-const sortOrder = ref(-1);
+const multiSort = computed(() => multiSortMeta.value?.map(item => item.field).join(','));
+const multiSortOrders = computed(() => multiSortMeta.value?.map(item => item.order === 1 ? 'asc' : 'desc').join(','));
 
-// 分页
-const totalRecords = ref(50);
-const first = ref(0);
-
-// 加载数据函数
-const loading = ref(false);
-const loadIncidents = async () => {
-  loading.value = true;
-  try {
-    // 这里应该是API调用，现在使用模拟数据
-    // const response = await fetch('/api/incidents');
-    // incidents.value = await response.json();
-    // 模拟加载延迟
-    await new Promise(resolve => setTimeout(resolve, 500));
-  } catch (error) {
-    console.error('加载事件列表失败:', error);
-  } finally {
-    loading.value = false;
+const {
+  data: incidents,
+  loading,
+  page,
+  pageSize,
+  pageCount,
+  total,
+} = usePagination((page, pageSize) => Apis.incident.findAll({
+  params: {
+    page: String(page),
+    pageSize: String(pageSize),
+    sortFields: multiSort.value,
+    sortOrders: multiSortOrders.value,
+    titleValue: filters.value.title,
+    serviceValue: filters.value.service.join(','),
+    incidentIdValue: filters.value.incidentId,
+    statusValue: filters.value.status.join(','),
+    assigneeValue: filters.value.assignee.join(','),
+    startTime: filters.value.dateRange[0] ? format(filters.value.dateRange[0], 'yyyy-MM-dd HH:mm:ss') : undefined,
+    endTime: filters.value.dateRange[1] ? format(filters.value.dateRange[1], 'yyyy-MM-dd HH:mm:ss') : undefined,
+    updatedAtStart: filters.value.updatedAtRange[0] ? format(filters.value.updatedAtRange[0], 'yyyy-MM-dd HH:mm:ss') : undefined,
+    updatedAtEnd: filters.value.updatedAtRange[1] ? format(filters.value.updatedAtRange[1], 'yyyy-MM-dd HH:mm:ss') : undefined,
   }
+}), {
+  watchingStates: [multiSort, multiSortOrders, filters],
+  debounce: 1000,
+});
+
+const { first, rows } = usePageOffset(page, pageSize)
+
+const openService = (serviceId: number) => {
+  window.open(`/service/${serviceId}`, '_blank');
 };
 
-// 页面加载时获取数据
-onMounted(() => {
-  loadIncidents();
-});
+const openIncident = (incidentId: number) => {
+  window.open(`/incident/${incidentId}`, '_blank');
+};
 
 // 获取状态对应的样式类
 const getStatusClass = (status: string) => {
@@ -135,142 +80,103 @@ const getStatusClass = (status: string) => {
   }
 };
 
-// 获取严重程度对应的样式类
-const getSeverityClass = (severity: string) => {
-  switch (severity) {
-    case 'low': return 'severity-low';
-    case 'medium': return 'severity-medium';
-    case 'high': return 'severity-high';
-    case 'critical': return 'severity-critical';
-    default: return '';
-  }
-};
 
-// 格式化日期
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleString();
-};
-
-// 定义路由 meta
 definePage({
   meta: {
     menu: {
       title: 'incident',
       icon: 'pi pi-exclamation-triangle',
-      order: 2
-    }
-  }
-})
+      order: 2,
+    },
+  },
+});
 </script>
 
 <template>
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-semibold">{{ t('incident.title') }}</h1>
-      <div class="flex gap-2">
-        <Button :label="t('incident.batchAssign')" icon="pi pi-users" class="p-button-outlined" />
-        <Button :label="t('incident.batchResolve')" icon="pi pi-check" severity="success" />
-      </div>
     </div>
 
-    <!-- 筛选栏 -->
-    <div class="grid grid-cols-6 gap-4 mb-6">
-      <Dropdown v-model="filters.status" :options="statusOptions" optionLabel="label" optionValue="value"
-        :placeholder="t('common.status')" class="w-full" />
-      <Dropdown v-model="filters.assignee" :options="assigneeOptions" optionLabel="label" optionValue="value"
-        placeholder="负责人" class="w-full" />
-      <Dropdown v-model="filters.type" :options="typeOptions" optionLabel="label" optionValue="value"
-        placeholder="类型" class="w-full" />
-      <Dropdown v-model="filters.service" :options="serviceOptions" optionLabel="label" optionValue="value"
-        :placeholder="t('alert.service')" class="w-full" />
-      <Calendar v-model="filters.dateRange" selectionMode="range" :placeholder="t('alert.dateRange')"
-        class="w-full" showIcon />
-      <span class="p-input-icon-left w-full">
-        <i class="pi pi-search" />
-        <InputText v-model="filters.search" :placeholder="t('common.search')" class="w-full" />
-      </span>
-    </div>
-
-    <!-- 排序标签 -->
-    <div class="flex gap-2 mb-4">
-      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'createdAt' }">
-        {{ t('common.createTime') }}
-        <i class="pi pi-angle-down ml-1" v-if="sortField === 'createdAt' && sortOrder === 1"></i>
-        <i class="pi pi-angle-up ml-1" v-if="sortField === 'createdAt' && sortOrder === -1"></i>
-      </Button>
-      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'updatedAt' }">
-        {{ t('common.updateTime') }}
-        <i class="pi pi-angle-down ml-1" v-if="sortField === 'updatedAt' && sortOrder === 1"></i>
-        <i class="pi pi-angle-up ml-1" v-if="sortField === 'updatedAt' && sortOrder === -1"></i>
-      </Button>
-      <Button class="p-button-text !py-1 !px-3 text-sm" :class="{ '!bg-gray-100': sortField === 'status' }">
-        {{ t('common.status') }}
-        <i class="pi pi-angle-down ml-1" v-if="sortField === 'status' && sortOrder === 1"></i>
-        <i class="pi pi-angle-up ml-1" v-if="sortField === 'status' && sortOrder === -1"></i>
-      </Button>
-    </div>
-
-    <!-- 数据表格 -->
-    <DataTable :value="incidents" class="p-datatable-sm" responsiveLayout="scroll"
-      :rows="10" :totalRecords="totalRecords" :first="first"
-      stripedRows showGridlines>
-      <Column field="id" header="ID" />
-      <Column field="title" :header="t('common.title')" />
-      <Column field="status" :header="t('common.status')">
+    <DataTable :value="incidents" :loading="loading" stripedRows responsiveLayout="scroll" lazy dataKey="id" paginator
+      v-model:rows="rows" v-model:first="first" :rowsPerPageOptions="[5, 10, 20, 50]" :totalRecords="total"
+      :pageCount="pageCount" filterDisplay="row" v-model:multi-sort-meta="multiSortMeta" sort-mode="multiple"
+      v-model:selection="selectedIncidents" selectionMode="multiple" @row-click="(e) => openIncident(e.data.id)"
+      :metaKeySelection="false">
+      <template #header>
+        <div class="flex justify-between items-center">
+          <span class="text-sm">已选择 {{ selectedIncidents.length }} 个事件</span>
+          <div class="flex gap-2">
+            <Button :label="t('incident.batchAssign')" icon="pi pi-users" class="p-button-outlined"
+              :disabled="!selectedIncidents.length" />
+            <Button :label="t('incident.batchResolve')" icon="pi pi-check" severity="success"
+              :disabled="!selectedIncidents.length" />
+          </div>
+        </div>
+      </template>
+      <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false">
+        <template #header>
+          <div class="flex items-center justify-center">
+            <i class="pi pi-list text-sm text-gray-500"></i>
+          </div>
+        </template>
+      </Column>
+      <Column field="id" header="ID" sortable style="width: 8%" :showFilterMenu="false">
+        <template #filter>
+          <InputText v-model="filters.incidentId" type="text" />
+        </template>
+      </Column>
+      <Column field="title" sortable :header="t('common.title')" style="width: 25%" :showFilterMenu="false">
+        <template #filter>
+          <InputText v-model="filters.title" type="text" />
+        </template>
+      </Column>
+      <Column field="status" sortable :header="t('common.status')" style="width: 10%" :showFilterMenu="false">
+        <template #filter>
+          <MultiSelect v-model="filters.status" :options="['已触发', '处理中', '已解决']" :placeholder="t('common.status')"
+            class="w-full" />
+        </template>
         <template #body="{ data }">
           <span :class="['px-2 py-1 rounded text-sm', getStatusClass(data.status)]">
             {{ data.status }}
           </span>
         </template>
       </Column>
-      <Column field="assignee" header="负责人" />
-      <Column field="createdAt" :header="t('common.createTime')" />
-      <Column field="updatedAt" :header="t('common.updateTime')" />
-      <Column field="service" :header="t('alert.service')" />
-      <Column field="type" header="类型" />
-      <Column :header="t('common.actions')" :exportable="false" style="min-width:8rem">
+      <Column field="service" sortable :header="t('alert.service')" style="width: 15%" :showFilterMenu="false">
+        <template #body="slotProps">
+          <Button variant="link" :label="`${slotProps.data.service.name} (#${slotProps.data.service.id})`"
+            @click="openService(slotProps.data.service.id)" />
+        </template>
+        <template #filter>
+          <MultiSelect v-model="filters.service" :options="[]" :placeholder="t('alert.service')" class="w-full"
+            optionLabel="name" />
+        </template>
+      </Column>
+      <Column field="assignee" sortable :header="t('incident.assignee')" style="width: 10%" :showFilterMenu="false">
+        <template #filter>
+          <MultiSelect v-model="filters.assignee" :options="[]" :placeholder="t('incident.assignee')" class="w-full" />
+        </template>
+      </Column>
+      <Column field="createdAt" sortable :header="t('common.createTime')" style="width: 17%" :showFilterMenu="false">
+        <template #filter>
+          <DatePicker v-model="filters.dateRange" selectionMode="range" :showTime="true" :showIcon="true"
+            :placeholder="t('common.dateRange')" class="w-full" />
+        </template>
+      </Column>
+      <Column field="updatedAt" sortable :header="t('common.updateTime')" style="width: 17%" :showFilterMenu="false">
+        <template #filter>
+          <DatePicker v-model="filters.updatedAtRange" selectionMode="range" :showTime="true" :showIcon="true"
+            :placeholder="t('common.dateRange')" class="w-full" />
+        </template>
+      </Column>
+      <Column :header="t('common.actions')" style="width: 8%">
         <template #body>
           <div class="flex gap-2">
-            <Button icon="pi pi-eye" class="p-button-text p-button-sm" :aria-label="t('common.view')" />
-            <Button icon="pi pi-user" class="p-button-text p-button-sm" :aria-label="t('common.edit')" />
-            <Button icon="pi pi-check" class="p-button-text p-button-sm" :aria-label="t('common.confirm')" />
+            <Button icon="pi pi-user" variant="text" :label="t('common.assign')" />
+            <Button icon="pi pi-check" variant="text" :label="t('common.resolve')" />
           </div>
         </template>
       </Column>
     </DataTable>
   </div>
 </template>
-
-<style scoped>
-:deep(.p-dropdown) {
-  width: 100%;
-}
-
-:deep(.p-calendar) {
-  width: 100%;
-}
-
-:deep(.p-datatable-sm) {
-  font-size: 0.875rem;
-}
-
-:deep(.p-datatable-sm .p-datatable-thead > tr > th) {
-  padding: 0.5rem 1rem;
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
-
-:deep(.p-datatable-sm .p-datatable-tbody > tr > td) {
-  padding: 0.5rem 1rem;
-}
-
-:deep(.p-button-sm) {
-  padding: 0.25rem;
-  font-size: 0.875rem;
-}
-
-:deep(.p-button-sm .p-button-icon) {
-  font-size: 0.875rem;
-}
-</style>

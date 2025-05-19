@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import DataTable, { type DataTableSortMeta } from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
-import Calendar from 'primevue/calendar'
+import DatePicker from 'primevue/datepicker'
 import Dialog from 'primevue/dialog'
 import { usePagination } from 'alova/client'
 import Apis from '@/api'
 import { startOfDay, endOfDay, format } from 'date-fns'
 import type { AlertWithServiceDto } from '@/api/globals'
+import AlertDetailDialog from '@/components/AlertDetailDialog.vue'
+import { usePageOffset } from '@/composables/usePageOffset'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -54,26 +56,12 @@ const {
   debounce: 1000,
 })
 
-const first = computed({
-  get() {
-    return (page.value - 1) * pageSize.value
-  },
-  set(v) {
-    page.value = (v + pageSize.value) / pageSize.value
-  },
-})
+const { first, rows } = usePageOffset(page, pageSize)
 
-const rows = computed({
-  get() {
-    return pageSize.value
-  },
-  set(v) {
-    if (v !== pageSize.value) {
-      page.value = 1
-      pageSize.value = v
-    }
-  },
-})
+const openDetailDialog = (alert: AlertWithServiceDto) => {
+  selectedAlert.value = alert
+  dialogVisible.value = true
+}
 
 const openService = (serviceId: number) => {
   window.open(`/service/${serviceId}`, '_blank')
@@ -126,51 +114,18 @@ definePage({
       </Column>
       <Column field="createdAt" sortable :header="t('common.createTime')" style="width: 17%" :showFilterMenu="false">
         <template #filter>
-          <Calendar v-model="filters.dateRange" selectionMode="range" :showTime="true" :showIcon="true"
+          <DatePicker v-model="filters.dateRange" selectionMode="range" :showTime="true" :showIcon="true"
             :placeholder="t('common.dateRange')" class="w-full" />
         </template>
       </Column>
       <Column :header="t('common.actions')" style="width: 8%">
         <template #body="slotProps">
-          <Button icon="pi pi-eye" variant="text" :label="t('common.view')" @click="selectedAlert = slotProps.data; dialogVisible = true" />
+          <Button icon="pi pi-eye" variant="text" :label="t('common.view')"  @click="openDetailDialog(slotProps.data)" />
         </template>
       </Column>
     </DataTable>
 
-    <Dialog v-model:visible="dialogVisible" :modal="true" :header="`#${selectedAlert?.id}: ${selectedAlert?.title}`" :style="{ width: '50rem' }">
-      <div v-if="selectedAlert" class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="font-semibold">{{ t('alert.service') }}:</label>
-            <div>
-              <Button variant="link" class="p-0" :label="`${selectedAlert.service.name} (#${selectedAlert.service.id})`" @click="openService(selectedAlert.service.id)" />
-            </div>
-          </div>
-          <div>
-            <label class="font-semibold">{{ t('alert.relatedIncident') }}:</label>
-            <div>
-              <template v-if="selectedAlert.incidentId">
-                <Button variant="link" class="p-0" :label="`#${selectedAlert.incidentId}`" @click="openIncident(selectedAlert.incidentId)" />
-              </template>
-              <template v-else>{{ t('alert.noIncident') }}</template>
-            </div>
-          </div>
-          <div>
-            <label class="font-semibold">{{ t('common.createTime') }}:</label>
-            <div>{{ selectedAlert.createdAt }}</div>
-          </div>
-          <div v-if="selectedAlert.customFields" class="col-span-2">
-            <label class="font-semibold">{{ t('editor.alert.customFields') }}:</label>
-            <div class="space-y-2 mt-2 pl-4">
-              <div v-for="(value, key) in selectedAlert.customFields" :key="key" class="flex gap-2">
-                <span class="font-medium">{{ key }}:</span>
-                <span>{{ value }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Dialog>
+    <AlertDetailDialog v-model="dialogVisible" :alert="selectedAlert" />
   </div>
 </template>
 

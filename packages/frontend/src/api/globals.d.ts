@@ -174,7 +174,174 @@ export type AlertResponseDto = {
    */
   pageSize: number;
 };
-export type CreateIncidentDto = object;
+export type IncidentTypeDto = {
+  /**
+   * [required]
+   */
+  name: string;
+  /**
+   * [required]
+   */
+  id: number;
+  /**
+   * [required]
+   */
+  serviceId: number;
+  /**
+   * [required]
+   */
+  title: string;
+  /**
+   * [required]
+   */
+  description: string;
+  /**
+   * [required]
+   */
+  condition: string;
+  /**
+   * [required]
+   */
+  groupCondition: string | null;
+  /**
+   * [required]
+   */
+  priority: number;
+  /**
+   * [required]
+   */
+  createdAt: string;
+  /**
+   * [required]
+   */
+  updatedAt: string;
+};
+export type IncidentWithServiceAndTypeDto = {
+  /**
+   * [required]
+   */
+  service: {
+    /**
+     * [required]
+     */
+    id: number;
+    /**
+     * [required]
+     */
+    name: string;
+    /**
+     * [required]
+     */
+    description: string | null;
+    /**
+     * [required]
+     */
+    createdAt: string;
+    /**
+     * [required]
+     */
+    updatedAt: string;
+  } | null;
+  /**
+   * [required]
+   */
+  type: {
+    /**
+     * [required]
+     */
+    name: string;
+    /**
+     * [required]
+     */
+    id: number;
+    /**
+     * [required]
+     */
+    serviceId: number;
+    /**
+     * [required]
+     */
+    title: string;
+    /**
+     * [required]
+     */
+    description: string;
+    /**
+     * [required]
+     */
+    condition: string;
+    /**
+     * [required]
+     */
+    groupCondition: string | null;
+    /**
+     * [required]
+     */
+    priority: number;
+    /**
+     * [required]
+     */
+    createdAt: string;
+    /**
+     * [required]
+     */
+    updatedAt: string;
+  } | null;
+  /**
+   * [required]
+   */
+  id: number;
+  /**
+   * [required]
+   */
+  title: string;
+  /**
+   * [required]
+   */
+  description: string | null;
+  /**
+   * [required]
+   */
+  status: object;
+  /**
+   * [required]
+   */
+  severity: object;
+  /**
+   * [required]
+   */
+  serviceId: number;
+  /**
+   * [required]
+   */
+  typeId: number | null;
+  /**
+   * [required]
+   */
+  createdAt: string;
+  /**
+   * [required]
+   */
+  updatedAt: string;
+};
+export type IncidentResponseDto = {
+  /**
+   * [required]
+   */
+  data: IncidentWithServiceAndTypeDto[];
+  /**
+   * [required]
+   */
+  total: number;
+  /**
+   * [required]
+   */
+  page: number;
+  /**
+   * [required]
+   */
+  pageSize: number;
+};
 export type UpdateIncidentDto = object;
 export type CreateIncidentTypeDto = object;
 export type UpdateIncidentTypeDto = object;
@@ -420,48 +587,131 @@ declare global {
       /**
        * ---
        *
-       * [POST]
-       *
-       * **path:** /api/incident
-       *
-       * ---
-       *
-       * **RequestBody**
-       * ```ts
-       * type RequestBody = object
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = string
-       * ```
-       */
-      create<
-        Config extends Alova2MethodConfig<string> & {
-          data: CreateIncidentDto;
-        }
-      >(
-        config: Config
-      ): Alova2Method<string, 'incident.create', Config>;
-      /**
-       * ---
-       *
        * [GET]
        *
        * **path:** /api/incident
        *
        * ---
        *
+       * **Query Parameters**
+       * ```ts
+       * type QueryParameters = {
+       *   // [required]
+       *   page: string
+       *   // [required]
+       *   pageSize: string
+       *   sortFields?: string
+       *   sortOrders?: string
+       *   titleValue?: string
+       *   serviceValue?: string
+       *   incidentIdValue?: string
+       *   statusValue?: string
+       *   assigneeValue?: string
+       *   startTime?: string
+       *   endTime?: string
+       *   updatedAtStart?: string
+       *   updatedAtEnd?: string
+       * }
+       * ```
+       *
+       * ---
+       *
        * **Response**
        * ```ts
-       * type Response = string
+       * type Response = {
+       *   // [required]
+       *   data: Array<{
+       *     // [required]
+       *     service: {
+       *       // [required]
+       *       id: number
+       *       // [required]
+       *       name: string
+       *       // [required]
+       *       description: string | null
+       *       // [required]
+       *       createdAt: string
+       *       // [required]
+       *       updatedAt: string
+       *     } | null
+       *     // [required]
+       *     type: {
+       *       // [required]
+       *       name: string
+       *       // [required]
+       *       id: number
+       *       // [required]
+       *       serviceId: number
+       *       // [required]
+       *       title: string
+       *       // [required]
+       *       description: string
+       *       // [required]
+       *       condition: string
+       *       // [required]
+       *       groupCondition: string | null
+       *       // [required]
+       *       priority: number
+       *       // [required]
+       *       createdAt: string
+       *       // [required]
+       *       updatedAt: string
+       *     } | null
+       *     // [required]
+       *     id: number
+       *     // [required]
+       *     title: string
+       *     // [required]
+       *     description: string | null
+       *     // [required]
+       *     status: object
+       *     // [required]
+       *     severity: object
+       *     // [required]
+       *     serviceId: number
+       *     // [required]
+       *     typeId: number | null
+       *     // [required]
+       *     createdAt: string
+       *     // [required]
+       *     updatedAt: string
+       *   }>
+       *   // [required]
+       *   total: number
+       *   // [required]
+       *   page: number
+       *   // [required]
+       *   pageSize: number
+       * }
        * ```
        */
-      findAll<Config extends Alova2MethodConfig<string>>(
-        config?: Config
-      ): Alova2Method<string, 'incident.findAll', Config>;
+      findAll<
+        Config extends Alova2MethodConfig<IncidentResponseDto> & {
+          params: {
+            /**
+             * [required]
+             */
+            page: string;
+            /**
+             * [required]
+             */
+            pageSize: string;
+            sortFields?: string;
+            sortOrders?: string;
+            titleValue?: string;
+            serviceValue?: string;
+            incidentIdValue?: string;
+            statusValue?: string;
+            assigneeValue?: string;
+            startTime?: string;
+            endTime?: string;
+            updatedAtStart?: string;
+            updatedAtEnd?: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<IncidentResponseDto, 'incident.findAll', Config>;
       /**
        * ---
        *
