@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
+import Fieldset from 'primevue/fieldset'
 import type { AlertWithServiceDto } from '@/api/globals'
 
 const { t } = useI18n()
@@ -47,14 +48,21 @@ const openIncident = (incidentId: number) => {
               <span>{{ alert.createdAt }}</span>
             </div>
           </div>
+          <div class="col-span-2">
+            <div class="flex items-start gap-2">
+              <label class="font-semibold w-24 shrink-0">{{ t('alert.content') }}:</label>
+              <div class="whitespace-pre-wrap">{{ alert.content }}</div>
+            </div>
+          </div>
           <div v-if="alert.customFields" class="col-span-2">
-            <label class="font-semibold">{{ t('editor.alert.customFields') }}:</label>
-            <div class="space-y-2 mt-2 pl-4">
+            <Fieldset :legend="t('editor.alert.customFields')">
+              <div class="space-y-2">
               <div v-for="(value, key) in alert.customFields" :key="key" class="flex gap-2">
                 <span class="font-medium w-24 shrink-0">{{ key }}:</span>
                 <span>{{ value }}</span>
               </div>
             </div>
+            </Fieldset>
           </div>
         </div>
       </div>
