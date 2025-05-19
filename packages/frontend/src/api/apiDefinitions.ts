@@ -24,7 +24,6 @@ export default {
   'alert.findAll': ['GET', '/api/alert'],
   'incident.findAll': ['GET', '/api/incident'],
   'incident.findOne': ['GET', '/api/incident/{id}'],
-  'incident.update': ['PATCH', '/api/incident/{id}'],
   'incidenttype.create': ['POST', '/api/incident-type/{serviceId}'],
   'incidenttype.findAll': ['GET', '/api/incident-type/{serviceId}'],
   'incidenttype.findOne': ['GET', '/api/incident-type/{serviceId}/{id}'],

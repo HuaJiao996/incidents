@@ -1,8 +1,8 @@
+import { PaginationQuerySchema } from '@libs/common/dto';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { PaginationQuerySchema } from '@libs/common/dto';
 
-export const AlertPaginationQuerySchema = PaginationQuerySchema.extend({
+export const FindAllAlertQuerySchema = PaginationQuerySchema.extend({
   titleValue: z.string().optional(),
   serviceValue: z.string().optional(),
   incidentIdValue: z.string().optional(),
@@ -10,4 +10,4 @@ export const AlertPaginationQuerySchema = PaginationQuerySchema.extend({
   endTime: z.string().optional(),
 });
 
-export class AlertPaginationQueryDto extends createZodDto(AlertPaginationQuerySchema) {}
+export class FindAllAlertDto extends createZodDto(FindAllAlertQuerySchema) {} 

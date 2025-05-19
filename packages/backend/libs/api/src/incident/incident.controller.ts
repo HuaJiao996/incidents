@@ -1,17 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
 import { IncidentService } from './incident.service';
-import { UpdateIncidentDto } from './dto/update-incident.dto';
-import { ApiZodQuery } from '@libs/common/decorators';
-import { IncidentPaginationQueryDto } from './dto/incident-pagination.query.dto';
 import { IncidentResponseDto } from './dto/incident.response.dto';
+import { FindAllIncidentDto } from './dto/find-all-incident.dto';
+import { ApiZodQuery } from '@libs/common/decorators';
 
 @Controller('incident')
 export class IncidentController {
   constructor(private readonly incidentService: IncidentService) {}
 
   @Get()
-  @ApiZodQuery(IncidentPaginationQueryDto)
-  findAll(@Query() query: IncidentPaginationQueryDto): Promise<IncidentResponseDto> {
+  @ApiZodQuery(FindAllIncidentDto)
+  findAll(@Query() query: FindAllIncidentDto): Promise<IncidentResponseDto> {
     return this.incidentService.findAll(query);
   }
 
@@ -20,9 +19,9 @@ export class IncidentController {
     return this.incidentService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateIncidentDto: UpdateIncidentDto) {
-    return this.incidentService.update(+id, updateIncidentDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateIncidentDto: CreateIncidentDto) {
+  //   return this.incidentService.update(+id, updateIncidentDto);
+  // }
 
 }

@@ -342,7 +342,6 @@ export type IncidentResponseDto = {
    */
   pageSize: number;
 };
-export type UpdateIncidentDto = object;
 export type CreateIncidentTypeDto = object;
 export type UpdateIncidentTypeDto = object;
 export type CreateServiceRouteDto = object;
@@ -393,13 +392,48 @@ declare global {
        *
        * ---
        *
+       * **Query Parameters**
+       * ```ts
+       * type QueryParameters = {
+       *   // [required]
+       *   page: string
+       *   // [required]
+       *   pageSize: string
+       *   sortFields?: string
+       *   sortOrders?: string
+       *   idValue?: string
+       *   nameValue?: string
+       *   descriptionValue?: string
+       * }
+       * ```
+       *
+       * ---
+       *
        * **Response**
        * ```ts
        * type Response = unknown
        * ```
        */
-      findAll<Config extends Alova2MethodConfig<unknown>>(
-        config?: Config
+      findAll<
+        Config extends Alova2MethodConfig<unknown> & {
+          params: {
+            /**
+             * [required]
+             */
+            page: string;
+            /**
+             * [required]
+             */
+            pageSize: string;
+            sortFields?: string;
+            sortOrders?: string;
+            idValue?: string;
+            nameValue?: string;
+            descriptionValue?: string;
+          };
+        }
+      >(
+        config: Config
       ): Alova2Method<unknown, 'service.findAll', Config>;
       /**
        * ---
@@ -748,50 +782,6 @@ declare global {
       >(
         config: Config
       ): Alova2Method<string, 'incident.findOne', Config>;
-      /**
-       * ---
-       *
-       * [PATCH]
-       *
-       * **path:** /api/incident/{id}
-       *
-       * ---
-       *
-       * **Path Parameters**
-       * ```ts
-       * type PathParameters = {
-       *   // [required]
-       *   id: string
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **RequestBody**
-       * ```ts
-       * type RequestBody = object
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = string
-       * ```
-       */
-      update<
-        Config extends Alova2MethodConfig<string> & {
-          pathParams: {
-            /**
-             * [required]
-             */
-            id: string;
-          };
-          data: UpdateIncidentDto;
-        }
-      >(
-        config: Config
-      ): Alova2Method<string, 'incident.update', Config>;
     };
     incidenttype: {
       /**

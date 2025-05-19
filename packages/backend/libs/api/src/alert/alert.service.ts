@@ -1,14 +1,14 @@
-import { DatabaseService } from '@libs/database';
 import { Injectable } from '@nestjs/common';
-import { AlertResponseDto } from './dto/alert.response.dto';
+import { DatabaseService } from '@libs/database';
 import { Prisma } from '@prisma/client';
-import { AlertPaginationQueryDto } from './dto/alert-pagination.query.dto';
+import { AlertResponseDto } from './dto/alert.response.dto';
+import { FindAllAlertDto } from './dto/find-all-alert.dto';
 
 @Injectable()
 export class AlertService {
   constructor(private readonly database: DatabaseService) {}
 
-  async findAll(query: AlertPaginationQueryDto): Promise<AlertResponseDto> {
+  async findAll(query: FindAllAlertDto): Promise<AlertResponseDto> {
     const { 
       page, 
       pageSize, 

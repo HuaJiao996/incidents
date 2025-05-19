@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
-
+import { FindAllServiceDto } from './dto/find-all-service.dto';
+import { ApiZodQuery } from '@libs/common/decorators';
 @Controller('service')
 export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
@@ -12,8 +13,9 @@ export class ServiceController {
   }
 
   @Get()
-  findAll() {
-    return this.serviceService.findAll();
+  @ApiZodQuery(FindAllServiceDto)
+  findAll(@Query() query: FindAllServiceDto) {
+    return this.serviceService.findAll(query);
   }
 
   @Get(':id')

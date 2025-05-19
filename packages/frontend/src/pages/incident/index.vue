@@ -25,7 +25,7 @@ const filters = ref({
   incidentId: '',
   status: [] as string[],
   assignee: [] as string[],
-  updatedAtRange: [null, null] as [Date | null, Date | null],
+  updatedAtRange: undefined as [Date | null, Date | null] | undefined,
   dateRange: [startOfDay(new Date()), endOfDay(new Date())] as [Date, Date]
 });
 
@@ -52,8 +52,8 @@ const {
     assigneeValue: filters.value.assignee.join(','),
     startTime: filters.value.dateRange[0] ? format(filters.value.dateRange[0], 'yyyy-MM-dd HH:mm:ss') : undefined,
     endTime: filters.value.dateRange[1] ? format(filters.value.dateRange[1], 'yyyy-MM-dd HH:mm:ss') : undefined,
-    updatedAtStart: filters.value.updatedAtRange[0] ? format(filters.value.updatedAtRange[0], 'yyyy-MM-dd HH:mm:ss') : undefined,
-    updatedAtEnd: filters.value.updatedAtRange[1] ? format(filters.value.updatedAtRange[1], 'yyyy-MM-dd HH:mm:ss') : undefined,
+    updatedAtStart: filters.value.updatedAtRange?.[0] ? format(filters.value.updatedAtRange[0], 'yyyy-MM-dd HH:mm:ss') : undefined,
+    updatedAtEnd: filters.value.updatedAtRange?.[1] ? format(filters.value.updatedAtRange[1], 'yyyy-MM-dd HH:mm:ss') : undefined,
   }
 }), {
   watchingStates: [multiSort, multiSortOrders, filters],
@@ -159,13 +159,13 @@ definePage({
       </Column>
       <Column field="createdAt" sortable :header="t('common.createTime')" style="width: 17%" :showFilterMenu="false">
         <template #filter>
-          <DatePicker v-model="filters.dateRange" selectionMode="range" :showTime="true" :showIcon="true"
+          <DatePicker v-model="filters.dateRange" selectionMode="range" :showTime="true" :showIcon="true" showButtonBar
             :placeholder="t('common.dateRange')" class="w-full" />
         </template>
       </Column>
       <Column field="updatedAt" sortable :header="t('common.updateTime')" style="width: 17%" :showFilterMenu="false">
         <template #filter>
-          <DatePicker v-model="filters.updatedAtRange" selectionMode="range" :showTime="true" :showIcon="true"
+          <DatePicker v-model="filters.updatedAtRange" selectionMode="range" :showTime="true" :showIcon="true" showButtonBar
             :placeholder="t('common.dateRange')" class="w-full" />
         </template>
       </Column>

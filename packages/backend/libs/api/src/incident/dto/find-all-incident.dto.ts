@@ -2,7 +2,7 @@ import { PaginationQuerySchema } from '@libs/common/dto';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-export const IncidentPaginationQuerySchema = PaginationQuerySchema.extend({
+export const FindAllIncidentQuerySchema = PaginationQuerySchema.extend({
   // 过滤参数
   titleValue: z.string().optional(),
   serviceValue: z.string().optional(), // 多选，逗号分隔
@@ -15,4 +15,4 @@ export const IncidentPaginationQuerySchema = PaginationQuerySchema.extend({
   updatedAtEnd: z.string().optional(),
 });
 
-export class IncidentPaginationQueryDto extends createZodDto(IncidentPaginationQuerySchema) {}
+export class FindAllIncidentDto extends createZodDto(FindAllIncidentQuerySchema) {} 

@@ -114,7 +114,7 @@ definePage({
       </Column>
       <Column field="createdAt" sortable :header="t('common.createTime')" style="width: 17%" :showFilterMenu="false">
         <template #filter>
-          <DatePicker v-model="filters.dateRange" selectionMode="range" :showTime="true" :showIcon="true"
+          <DatePicker v-model="filters.dateRange" selectionMode="range" :showTime="true" :showIcon="true" showButtonBar
             :placeholder="t('common.dateRange')" class="w-full" />
         </template>
       </Column>

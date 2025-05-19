@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateIncidentDto } from './dto/update-incident.dto';
-import { IncidentPaginationQueryDto } from './dto/incident-pagination.query.dto';
 import { Prisma, IncidentStatus } from '@prisma/client';
 import { IncidentResponseDto } from './dto/incident.response.dto';
 import { DatabaseService } from '@libs/database';
+import { FindAllIncidentDto } from './dto/find-all-incident.dto';
 
 @Injectable()
 export class IncidentService {
 
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async findAll(query: IncidentPaginationQueryDto): Promise<IncidentResponseDto> {
+  async findAll(query: FindAllIncidentDto): Promise<IncidentResponseDto> {
     const { 
       page, 
       pageSize, 
