@@ -9,9 +9,9 @@ import { HttpExceptionFilter } from '@libs/common/filters/http-exception.filter'
 import { LoggingInterceptor } from '@libs/common/interceptors/logging.interceptor';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 
-patchNestJsSwagger()
 
 async function bootstrap() {
+  patchNestJsSwagger()
   const app = await NestFactory.create<NestFastifyApplication>(
     ServerModule,
     new FastifyAdapter(),

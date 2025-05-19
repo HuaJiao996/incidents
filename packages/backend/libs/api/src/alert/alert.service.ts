@@ -2,40 +2,83 @@ import { DatabaseService } from '@libs/database';
 import { Injectable } from '@nestjs/common';
 import { AlertResponseDto } from './dto/alert.response.dto';
 import { Prisma } from '@prisma/client';
+import { AlertPaginationQueryDto } from './dto/alert-pagination.query.dto';
 
 @Injectable()
 export class AlertService {
   constructor(private readonly database: DatabaseService) {}
 
-  async findAll(page: number, pageSize: number, title?: string, service?: string, dateRange?: Date[], orderBy?: string): Promise<AlertResponseDto> {
+  async findAll(query: AlertPaginationQueryDto): Promise<AlertResponseDto> {
+    const { 
+      page, 
+      pageSize, 
+      sortFields,
+      sortOrders,
+      titleValue, 
+      serviceValue, 
+      incidentIdValue,
+      startTime,
+      endTime
+    } = query;
+    
     const where: Prisma.AlertWhereInput = {};
-    if (title) {
-      where.title = {
-        contains: title,
+    
+    // 处理过滤条件
+    if (titleValue) {
+      where.title = { 
+        contains: titleValue 
       };
     }
-    if (service) {
+
+    if (serviceValue) {
       where.service = {
-        id: +service,
+        OR: [
+          { id: isNaN(+serviceValue) ? undefined : +serviceValue },
+          { name: { contains: serviceValue } }
+        ]
       };
     }
-    if (dateRange) {
+
+    if (incidentIdValue) {
+      where.incidentId = +incidentIdValue;
+    }
+
+    // 处理时间范围
+    if (startTime || endTime) {
       where.createdAt = {
-        gte: dateRange[0],
-        lte: dateRange[1],
+        ...(startTime && { gte: new Date(startTime) }),
+        ...(endTime && { lte: new Date(endTime) }),
       };
+    }
+
+    // 处理多字段排序
+    let orderBy: Prisma.AlertOrderByWithRelationInput[] = [{
+      createdAt: 'desc' // 默认排序
+    }];
+
+    if (sortFields) {
+      const fields = sortFields.split(',');
+      const orders = sortOrders || fields.map(() => 'asc');
+
+      orderBy = fields.map((field, index) => ({
+        [field.trim()]: orders[index] || 'asc'
+      }));
     }
     
-    const alerts = await this.database.client.alert.findMany({
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      where,
-      include: {
-        service: true,
-      },
-    });
-
-    const total = await this.database.client.alert.count();
+    const [alerts, total] = await Promise.all([
+      this.database.client.alert.findMany({
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        where,
+        orderBy,
+        include: {
+          service: true,
+        },
+      }),
+      this.database.client.alert.count({
+        where,
+      })
+    ]);
 
     return {
       page,

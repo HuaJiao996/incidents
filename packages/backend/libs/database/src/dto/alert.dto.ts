@@ -17,4 +17,4 @@ export class AlertDto implements Alert {
   createdAt: Date;
 
   updatedAt: Date;
-} 
+}

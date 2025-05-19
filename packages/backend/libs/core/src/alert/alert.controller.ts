@@ -9,24 +9,11 @@ export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 
   @Post()
-  @ApiResponse({
-    status: 201,
-    type: AlertCreatedResponseDto,
-  })
   async createAlert(@Body() createAlertDto: CreateAlertDto): Promise<AlertCreatedResponseDto> {
     return this.alertService.createAlert(createAlertDto);
   }
 
   @Post('services/:serviceId')
-  @ApiParam({
-    name: 'serviceId',
-    type: 'number',
-    example: 1,
-  })
-  @ApiResponse({
-    status: 201,
-    type: AlertCreatedResponseDto,
-  })
   async createAlertForService(
     @Param('serviceId') serviceId: string,
     @Body() createAlertDto: CreateAlertDto,

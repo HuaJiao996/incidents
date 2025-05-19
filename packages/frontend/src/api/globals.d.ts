@@ -96,7 +96,33 @@ export type CreateServiceDto = {
   name: string;
   description?: string;
 };
-export type AlertDto = {
+export type ServiceDto = {
+  /**
+   * [required]
+   */
+  id: number;
+  /**
+   * [required]
+   */
+  name: string;
+  /**
+   * [required]
+   */
+  description: string | null;
+  /**
+   * [required]
+   */
+  createdAt: string;
+  /**
+   * [required]
+   */
+  updatedAt: string;
+};
+export type AlertWithServiceDto = {
+  /**
+   * [required]
+   */
+  service: ServiceDto;
   /**
    * [required]
    */
@@ -134,7 +160,7 @@ export type AlertResponseDto = {
   /**
    * [required]
    */
-  data: AlertDto[];
+  data: AlertWithServiceDto[];
   /**
    * [required]
    */
@@ -306,14 +332,17 @@ declare global {
        * **Query Parameters**
        * ```ts
        * type QueryParameters = {
-       *   orderBy?: string
-       *   dateRange?: string[]
-       *   service?: string
-       *   title?: string
        *   // [required]
-       *   pageSize: number
+       *   page: string
        *   // [required]
-       *   page: number
+       *   pageSize: string
+       *   sortFields?: string
+       *   sortOrders?: string
+       *   titleValue?: string
+       *   serviceValue?: string
+       *   incidentIdValue?: string
+       *   startTime?: string
+       *   endTime?: string
        * }
        * ```
        *
@@ -324,6 +353,19 @@ declare global {
        * type Response = {
        *   // [required]
        *   data: Array<{
+       *     // [required]
+       *     service: {
+       *       // [required]
+       *       id: number
+       *       // [required]
+       *       name: string
+       *       // [required]
+       *       description: string | null
+       *       // [required]
+       *       createdAt: string
+       *       // [required]
+       *       updatedAt: string
+       *     }
        *     // [required]
        *     id: number
        *     // [required]
@@ -353,18 +395,21 @@ declare global {
       findAll<
         Config extends Alova2MethodConfig<AlertResponseDto> & {
           params: {
-            orderBy?: string;
-            dateRange?: string[];
-            service?: string;
-            title?: string;
             /**
              * [required]
              */
-            pageSize: number;
+            page: string;
             /**
              * [required]
              */
-            page: number;
+            pageSize: string;
+            sortFields?: string;
+            sortOrders?: string;
+            titleValue?: string;
+            serviceValue?: string;
+            incidentIdValue?: string;
+            startTime?: string;
+            endTime?: string;
           };
         }
       >(
