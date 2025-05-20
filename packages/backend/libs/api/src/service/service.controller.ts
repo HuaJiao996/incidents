@@ -8,7 +8,7 @@ export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
 
   @Post()
-  create(@Body() createServiceDto: CreateServiceDto) {
+  create(@Body() createServiceDto: CreateServiceDto): Promise<string> {
     return this.serviceService.create(createServiceDto);
   }
 

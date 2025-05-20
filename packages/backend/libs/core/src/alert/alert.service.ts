@@ -81,7 +81,7 @@ export class AlertService {
     const serviceRoutes = await this.databaseService.client.serviceRoute.findMany();
     this.logger.debug(serviceRoutes);
 
-    const engine = new RuleEngine<number>();
+    const engine = new RuleEngine<string>();
     serviceRoutes.forEach((serviceRoute) => {
       if (serviceRoute.condition) {
         engine.appendRule(
@@ -98,7 +98,7 @@ export class AlertService {
 
   async createAlertForService(
     createAlertDto: CreateAlertDto,
-    serviceId?: number,
+    serviceId?: string,
     validateGlobalFields: boolean = true,
   ): Promise<AlertCreatedResponseDto> {
     if (!serviceId) {

@@ -10,7 +10,7 @@ import { usePagination } from 'alova/client';
 import Apis from '@/api';
 import { usePageOffset } from '@/composables/usePageOffset';
 import { format } from 'date-fns';
-
+import CreateServiceDialog from './__create.vue';
 const { t } = useI18n();
 
 const multiSortMeta = ref<DataTableSortMeta[]>([]);
@@ -50,6 +50,8 @@ const {
 
 const { first, rows } = usePageOffset(page, pageSize);
 
+const createDialogVisible = ref(false);
+
 const openService = (serviceId: number) => {
   window.open(`/service/${serviceId}`, '_blank');
 };
@@ -69,27 +71,13 @@ definePage({
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-semibold">{{ t('service.title') }}</h1>
-      <Button icon="pi pi-plus" :label="t('service.create')" severity="success" />
+      <Button icon="pi pi-plus" :label="t('service.create')" severity="success" @click="createDialogVisible = true" />
     </div>
 
-    <DataTable
-      :value="services"
-      :loading="loading"
-      stripedRows
-      responsiveLayout="scroll"
-      lazy
-      dataKey="id"
-      paginator
-      v-model:rows="rows"
-      v-model:first="first"
-      :rowsPerPageOptions="[5, 10, 20, 50]"
-      :totalRecords="total"
-      :pageCount="pageCount"
-      filterDisplay="row"
-      v-model:multi-sort-meta="multiSortMeta"
-      sort-mode="multiple"
-      @row-click="(e) => openService(e.data.id)"
-    >
+    <DataTable :value="services" :loading="loading" stripedRows responsiveLayout="scroll" lazy dataKey="id" paginator
+      v-model:rows="rows" v-model:first="first" :rowsPerPageOptions="[5, 10, 20, 50]" :totalRecords="total"
+      :pageCount="pageCount" filterDisplay="row" v-model:multi-sort-meta="multiSortMeta" sort-mode="multiple"
+      @row-click="(e) => openService(e.data.id)">
       <Column field="id" header="ID" sortable style="width: 8%" :showFilterMenu="false">
         <template #filter>
           <InputText v-model="filters.id" type="text" class="w-full" />
@@ -100,7 +88,8 @@ definePage({
           <InputText v-model="filters.name" type="text" class="w-full" />
         </template>
       </Column>
-      <Column field="description" sortable :header="t('service.description')" style="width: 44%" :showFilterMenu="false">
+      <Column field="description" sortable :header="t('service.description')" style="width: 44%"
+        :showFilterMenu="false">
         <template #filter>
           <InputText v-model="filters.description" type="text" class="w-full" />
         </template>
@@ -111,15 +100,8 @@ definePage({
             :placeholder="t('common.dateRange')" class="w-full" :manualInput="false" />
         </template>
       </Column>
-      <Column :header="t('common.actions')" style="width: 8%">
-        <template #body="slotProps">
-          <div class="flex gap-2">
-            <Button icon="pi pi-pencil" variant="text" severity="info" :aria-label="t('common.edit')" />
-            <Button icon="pi pi-trash" variant="text" severity="danger" :aria-label="t('common.delete')" />
-          </div>
-        </template>
-      </Column>
     </DataTable>
+
+    <CreateServiceDialog v-model="createDialogVisible" />
   </div>
 </template>
-

@@ -18,6 +18,6 @@ export class AlertController {
     @Param('serviceId') serviceId: string,
     @Body() createAlertDto: CreateAlertDto,
   ): Promise<AlertCreatedResponseDto> {
-    return this.alertService.createAlertForService(createAlertDto, +serviceId);
+    return this.alertService.createAlertForService(createAlertDto, serviceId);
   }
 }

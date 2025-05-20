@@ -373,16 +373,16 @@ declare global {
        *
        * **Response**
        * ```ts
-       * type Response = unknown
+       * type Response = number
        * ```
        */
       create<
-        Config extends Alova2MethodConfig<unknown> & {
+        Config extends Alova2MethodConfig<number> & {
           data: CreateServiceDto;
         }
       >(
         config: Config
-      ): Alova2Method<unknown, 'service.create', Config>;
+      ): Alova2Method<number, 'service.create', Config>;
       /**
        * ---
        *
@@ -404,6 +404,8 @@ declare global {
        *   idValue?: string
        *   nameValue?: string
        *   descriptionValue?: string
+       *   startTime?: string
+       *   endTime?: string
        * }
        * ```
        *
@@ -430,6 +432,8 @@ declare global {
             idValue?: string;
             nameValue?: string;
             descriptionValue?: string;
+            startTime?: string;
+            endTime?: string;
           };
         }
       >(

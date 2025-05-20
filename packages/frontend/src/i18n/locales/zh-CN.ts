@@ -22,7 +22,8 @@ export default {
     title: '标题',
     actions: '操作',
     createTime: '创建时间',
-    updateTime: '更新时间'
+    updateTime: '更新时间',
+    required: '必填'
   },
   incident: {
     title: '故障事件列表',

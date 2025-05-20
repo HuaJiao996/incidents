@@ -11,7 +11,18 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [
     tailwindcss(),
-    VueRouter(),
+    VueRouter({
+      routesFolder: [
+        {
+          src: 'src/pages',
+          path: '',
+          exclude: ['**/__*', '**/__*.vue'],
+        },
+      ],
+      extensions: ['.vue'],
+      dts: './typed-router.d.ts',
+      importMode: 'async',
+    }),
     vue(),
     Layouts(),
     vueDevTools(),
@@ -20,5 +31,9 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
+  },
+  // 开发模式下需要将 vue-router 标记为 noExternal
+  ssr: {
+    noExternal: process.env.NODE_ENV === 'development' ? ['vue-router'] : [],
   },
 })

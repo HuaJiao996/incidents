@@ -10,7 +10,7 @@ export class AlertDto implements Alert {
 
   customFields: JsonValue | null;
 
-  serviceId: number;
+  serviceId: string;
 
   incidentId: number | null;
 

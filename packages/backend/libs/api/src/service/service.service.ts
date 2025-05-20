@@ -8,28 +8,15 @@ import { Prisma } from '@prisma/client';
 export class ServiceService {
   constructor(private readonly databaseService: DatabaseService) {}
   
-  async create(createServiceDto: CreateServiceDto) {
-    const service = await this.databaseService.client.$transaction(async (tx) => {
-      const service = await tx.service.create({
-        data: createServiceDto
-      });
-
-      await tx.incidentType.create({
-        data: {
-          name: 'Default Incident',
-          serviceId: service.id,
-          priority: 0,
-          description: 'Default Incident',
-          title: 'Default Incident',
-          condition: 'true',
-          groupCondition: 'true',
-        }
-      });
-
-      return service;
+  async create(createServiceDto: CreateServiceDto): Promise<string> {
+    const service = await this.databaseService.client.service.create({
+      data: createServiceDto,
+      select: {
+        id: true
+      }
     });
       
-    return service;
+    return service.id;
   }
 
   async findAll(query: FindAllServiceDto) {
@@ -48,7 +35,7 @@ export class ServiceService {
     // 构建过滤条件
     const where: Prisma.ServiceWhereInput = {};
     if (idValue) {
-      where.id = +idValue;
+      where.id = idValue;
     }
     if (nameValue) {
       where.name = { contains: nameValue };
@@ -102,7 +89,7 @@ export class ServiceService {
 
   async findOne(id: string) {
     const service = await this.databaseService.client.service.findFirst({
-      where: { id: +id },
+      where: { id: id },
       include: {
         incidentTypes: {
           orderBy: { priority: 'asc' },
@@ -119,7 +106,7 @@ export class ServiceService {
 
   update(id: string, updateServiceDto: CreateServiceDto) {
     return this.databaseService.client.service.update({
-      where: { id: +id },
+      where: { id: id },
       data: updateServiceDto
     });
   }

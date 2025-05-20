@@ -33,7 +33,7 @@ export class IncidentService {
     }
     
     if (serviceValue) {
-      const serviceIds = serviceValue.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+      const serviceIds = serviceValue.split(',');
       if (serviceIds.length > 0) {
         where.serviceId = { in: serviceIds };
       }

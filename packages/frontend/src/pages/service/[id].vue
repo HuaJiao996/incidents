@@ -2,6 +2,19 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import Button from 'primevue/button';
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
+import InputText from 'primevue/inputtext';
+import Textarea from 'primevue/textarea';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import ProgressSpinner from 'primevue/progressspinner';
+import Message from 'primevue/message';
+import Card from 'primevue/card';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -12,32 +25,37 @@ interface Service {
   id: string;
   name: string;
   description: string;
-  status: 'healthy' | 'warning' | 'critical' | 'maintenance';
-  type: 'web' | 'database' | 'api' | 'infrastructure';
-  lastChecked: string;
-  uptime: string;
-  metrics?: Metric[];
-  incidents?: IncidentRef[];
 }
 
-interface Metric {
-  name: string;
-  value: string;
-  unit: string;
-  status: 'normal' | 'warning' | 'critical';
-}
-
-interface IncidentRef {
-  id: string;
+// 定义告警示例数据结构
+interface AlertPayload {
   title: string;
-  status: 'open' | 'closed' | 'in_progress';
-  createdAt: string;
+  description: string;
+  severity: string;
+  source: string;
+  details: {
+    hostname: string;
+    ip_address: string;
+  };
 }
 
 // 状态数据
 const service = ref<Service | null>(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const activeTab = ref('basic');
+
+// 示例请求数据
+const examplePayload = ref<string>(JSON.stringify({
+  title: "系统告警示例",
+  description: "详细告警信息...",
+  severity: "critical",
+  source: "监控系统",
+  details: {
+    hostname: "server-01",
+    ip_address: "192.168.1.100"
+  }
+}, null, 2));
 
 // 加载服务详情
 const loadServiceDetail = async () => {
@@ -45,82 +63,12 @@ const loadServiceDetail = async () => {
   error.value = null;
 
   try {
-    // 这里应该是API调用，现在使用模拟数据
-    // const response = await fetch(`/api/services/${serviceId}`);
-    // service.value = await response.json();
-
-    // 模拟加载延迟
+    // 模拟API调用
     await new Promise(resolve => setTimeout(resolve, 800));
-
-    // 模拟数据
     service.value = {
       id: serviceId,
-      name: serviceId === '1' ? '用户认证服务' :
-            serviceId === '2' ? '主数据库' :
-            serviceId === '3' ? '网站前端' :
-            serviceId === '4' ? '文件存储服务' : '消息队列',
-      description: serviceId === '1' ? '处理用户登录、注册和授权的API服务。' :
-                  serviceId === '2' ? '存储核心业务数据的主数据库服务。' :
-                  serviceId === '3' ? '用户访问的主要网站界面。' :
-                  serviceId === '4' ? '负责存储和管理用户上传的文件。' : '处理系统间异步消息传递的队列服务。',
-      status: serviceId === '1' ? 'healthy' :
-              serviceId === '2' ? 'warning' :
-              serviceId === '3' ? 'healthy' :
-              serviceId === '4' ? 'maintenance' : 'critical',
-      type: serviceId === '1' ? 'api' :
-            serviceId === '2' ? 'database' :
-            serviceId === '3' ? 'web' : 'infrastructure',
-      lastChecked: '2023-10-15T10:30:00Z',
-      uptime: serviceId === '1' ? '99.98%' :
-              serviceId === '2' ? '99.5%' :
-              serviceId === '3' ? '99.9%' :
-              serviceId === '4' ? '98.7%' : '95.2%',
-      metrics: [
-        {
-          name: 'CPU使用率',
-          value: serviceId === '1' ? '45' :
-                serviceId === '2' ? '78' :
-                serviceId === '3' ? '35' :
-                serviceId === '4' ? '25' : '90',
-          unit: '%',
-          status: serviceId === '1' ? 'normal' :
-                  serviceId === '2' ? 'warning' :
-                  serviceId === '3' ? 'normal' :
-                  serviceId === '4' ? 'normal' : 'critical'
-        },
-        {
-          name: '内存使用率',
-          value: serviceId === '1' ? '60' :
-                serviceId === '2' ? '85' :
-                serviceId === '3' ? '50' :
-                serviceId === '4' ? '40' : '75',
-          unit: '%',
-          status: serviceId === '1' ? 'normal' :
-                  serviceId === '2' ? 'warning' :
-                  serviceId === '3' ? 'normal' :
-                  serviceId === '4' ? 'normal' : 'warning'
-        },
-        {
-          name: '响应时间',
-          value: serviceId === '1' ? '120' :
-                serviceId === '2' ? '350' :
-                serviceId === '3' ? '180' :
-                serviceId === '4' ? '200' : '500',
-          unit: 'ms',
-          status: serviceId === '1' ? 'normal' :
-                  serviceId === '2' ? 'warning' :
-                  serviceId === '3' ? 'normal' :
-                  serviceId === '4' ? 'normal' : 'critical'
-        }
-      ],
-      incidents: serviceId === '5' ? [
-        {
-          id: '2',
-          title: '数据库连接失败',
-          status: 'in_progress',
-          createdAt: '2023-10-14T14:20:00Z'
-        }
-      ] : []
+      name: 'ServiceA',
+      description: '核心业务服务'
     };
   } catch (err) {
     console.error('加载服务详情失败:', err);
@@ -136,365 +84,216 @@ onMounted(() => {
   loadServiceDetail();
 });
 
-// 获取状态对应的样式类
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'healthy': return 'status-healthy';
-    case 'warning': return 'status-warning';
-    case 'critical': return 'status-critical';
-    case 'maintenance': return 'status-maintenance';
-    case 'normal': return 'status-normal';
-    default: return '';
-  }
-};
+// 事件类型数据
+const incidentTypes = ref([
+  { id: 1, name: 'TypeA', description: 'Default type', createdAt: '2023-10-27' },
+  { id: 2, name: 'TypeB', description: 'Critical type', createdAt: '2023-10-27' }
+]);
 
-// 获取服务类型对应的图标
-const getTypeIcon = (type: string) => {
-  switch (type) {
-    case 'web': return 'pi-globe';
-    case 'database': return 'pi-database';
-    case 'api': return 'pi-server';
-    case 'infrastructure': return 'pi-cog';
-    default: return 'pi-circle';
-  }
-};
+// 路由配置数据
+const routes = ref([
+  { id: 1, service: 'ServiceA', target: 'Team A', createdAt: '2023-10-27' }
+]);
 
-// 格式化日期
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleString();
-};
+// 自定义字段数据
+const customFields = ref([
+  { id: 1, service: 'ServiceA', name: 'hostname', type: 'Text', createdAt: '2023-10-27' }
+]);
 </script>
 
 <template>
-  <div class="service-detail-page">
-    <!-- 返回按钮 -->
-    <div class="back-link">
-      <router-link to="/service" class="back-button">
-        <i class="pi pi-arrow-left"></i> 返回服务列表
-      </router-link>
-    </div>
-
-    <!-- 加载状态 -->
-    <div class="loading-state" v-if="loading">
-      <i class="pi pi-spinner pi-spin"></i>
-      <p>加载中...</p>
-    </div>
-
-    <!-- 错误状态 -->
-    <div class="error-state" v-else-if="error">
-      <i class="pi pi-exclamation-triangle"></i>
-      <p>{{ error }}</p>
-      <button @click="loadServiceDetail" class="retry-button">
-        <i class="pi pi-refresh"></i> 重试
-      </button>
-    </div>
-
-    <!-- 服务详情 -->
-    <div class="service-detail" v-else-if="service">
-      <div class="service-header">
-        <div class="service-title">
-          <i class="pi" :class="'pi-' + getTypeIcon(service.type)"></i>
-          <h1>{{ service.name }}</h1>
-        </div>
-        <div class="service-status" :class="getStatusClass(service.status)">
-          {{
-            service.status === 'healthy' ? '正常' :
-            service.status === 'warning' ? '警告' :
-            service.status === 'critical' ? '严重' : '维护中'
-          }}
-        </div>
-      </div>
-
-      <div class="service-info">
-        <div class="info-item">
-          <span class="label">ID:</span>
-          <span>{{ service.id }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">类型:</span>
-          <span>{{
-            service.type === 'web' ? '网站' :
-            service.type === 'database' ? '数据库' :
-            service.type === 'api' ? 'API服务' : '基础设施'
-          }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">上次检查:</span>
-          <span>{{ formatDate(service.lastChecked) }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">可用率:</span>
-          <span>{{ service.uptime }}</span>
-        </div>
-      </div>
-
-      <div class="service-description">
-        <h2>描述</h2>
-        <p>{{ service.description }}</p>
-      </div>
-
-      <!-- 指标信息 -->
-      <div class="service-metrics" v-if="service.metrics && service.metrics.length > 0">
-        <h2>性能指标</h2>
-        <div class="metrics-grid">
-          <div class="metric-card" v-for="metric in service.metrics" :key="metric.name">
-            <div class="metric-header">
-              <span class="metric-name">{{ metric.name }}</span>
-              <span class="metric-status" :class="getStatusClass(metric.status)"></span>
-            </div>
-            <div class="metric-value">{{ metric.value }}{{ metric.unit }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 相关事件 -->
-      <div class="service-incidents" v-if="service.incidents && service.incidents.length > 0">
-        <h2>相关事件</h2>
-        <div class="incidents-list">
-          <div class="incident-item" v-for="incident in service.incidents" :key="incident.id">
-            <div class="incident-title">
-              <router-link :to="`/incident/${incident.id}`">{{ incident.title }}</router-link>
-            </div>
-            <div class="incident-meta">
-              <span class="incident-status" :class="{
-                'status-open': incident.status === 'open',
-                'status-in-progress': incident.status === 'in_progress',
-                'status-closed': incident.status === 'closed'
-              }">
-                {{ incident.status === 'open' ? '未解决' : incident.status === 'in_progress' ? '处理中' : '已解决' }}
-              </span>
-              <span class="incident-date">{{ formatDate(incident.createdAt) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 操作按钮 -->
-      <div class="service-actions">
-        <Button
-          label="重启服务"
-          icon="pi pi-refresh"
-          severity="success"
-          class="mr-2"
-        />
-        <Button
-          label="配置"
-          icon="pi pi-cog"
-          severity="secondary"
-          class="mr-2"
-        />
-        <Button
-          label="查看详细监控"
-          icon="pi pi-chart-line"
-          severity="secondary"
-        />
+  <div class="surface-ground">
+    <!-- 页面标题 -->
+    <div class="surface-section px-4 py-2 flex align-items-center border-bottom-1 surface-border">
+      <div class="flex align-items-center gap-2">
+        <span class="text-xl">服务详情: ServiceA</span>
+        <Button class="p-button-text p-button-plain" link>
+          <i class="pi pi-arrow-left mr-1" style="font-size: 0.8rem" />
+          <span class="text-sm">返回列表</span>
+        </Button>
       </div>
     </div>
 
-    <!-- 未找到服务 -->
-    <div class="not-found" v-else>
-      <i class="pi pi-exclamation-circle"></i>
-      <h2>未找到服务</h2>
-      <p>找不到ID为 "{{ serviceId }}" 的服务</p>
-      <router-link to="/service" class="back-link-button">
-        返回服务列表
-      </router-link>
+    <div class="p-4">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="surface-section p-4 border-round">
+        <div class="flex align-items-center justify-content-center">
+          <ProgressSpinner />
+        </div>
+      </div>
+
+      <!-- 错误状态 -->
+      <div v-else-if="error" class="surface-section p-4 border-round">
+        <div class="flex flex-column align-items-center gap-2">
+          <Message severity="error" :text="error" />
+          <Button icon="pi pi-refresh" label="重试" @click="loadServiceDetail" />
+        </div>
+      </div>
+
+      <!-- 服务详情内容 -->
+      <div v-else-if="service" class="surface-section border-round">
+        <Tabs v-model:value="activeTab">
+          <TabList>
+            <Tab value="basic">
+              <div class="flex align-items-center">
+                <i class="pi pi-home mr-2" style="font-size: 0.875rem" />
+                <span>基本信息</span>
+              </div>
+            </Tab>
+            <Tab value="incident-types">
+              <div class="flex align-items-center">
+                <i class="pi pi-list mr-2" style="font-size: 0.875rem" />
+                <span>事件类型</span>
+              </div>
+            </Tab>
+            <Tab value="routes">
+              <div class="flex align-items-center">
+                <i class="pi pi-sitemap mr-2" style="font-size: 0.875rem" />
+                <span>路由配置</span>
+              </div>
+            </Tab>
+            <Tab value="custom-fields">
+              <div class="flex align-items-center">
+                <i class="pi pi-cog mr-2" style="font-size: 0.875rem" />
+                <span>自定义字段</span>
+              </div>
+            </Tab>
+            <Tab value="schedules">
+              <div class="flex align-items-center">
+                <i class="pi pi-calendar mr-2" style="font-size: 0.875rem" />
+                <span>排班管理</span>
+              </div>
+            </Tab>
+          </TabList>
+
+          <TabPanels class="p-4">
+            <!-- 基本信息面板 -->
+            <TabPanel value="basic">
+              <div class="flex flex-column gap-6">
+                <!-- 基本信息部分 -->
+                <div>
+                  <div class="text-lg mb-4">基本信息</div>
+                  <div class="flex flex-column gap-4">
+                    <div class="flex align-items-center">
+                      <label class="w-8rem text-500">名称:</label>
+                      <div class="flex-1 flex align-items-center gap-2">
+                        <InputText v-model="service.name" class="flex-1" />
+                        <Button icon="pi pi-pencil" text severity="secondary" />
+                      </div>
+                    </div>
+                    <div class="flex align-items-center">
+                      <label class="w-8rem text-500">描述:</label>
+                      <div class="flex-1 flex align-items-center gap-2">
+                        <InputText v-model="service.description" class="flex-1" />
+                        <Button icon="pi pi-pencil" text severity="secondary" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- API集成部分 -->
+                <div>
+                  <div class="text-lg mb-4">告警 API 集成</div>
+                  <div class="flex flex-column gap-4">
+                    <div class="flex align-items-center">
+                      <label class="w-8rem text-500">接口地址:</label>
+                      <div class="flex-1 flex align-items-center gap-2">
+                        <div class="flex-1 bg-gray-50 p-3 border-round font-mono text-sm">
+                          POST /api/v1/services/{service_id}/alerts
+                        </div>
+                        <Button icon="pi pi-copy" text severity="secondary" />
+                      </div>
+                    </div>
+                    <div class="flex">
+                      <label class="w-8rem text-500">请求示例:</label>
+                      <div class="flex-1">
+                        <Textarea v-model="examplePayload" :readonly="true" rows="10" class="w-full font-mono text-sm" />
+                        <div class="flex justify-content-end mt-2">
+                          <Button class="p-button-text p-button-plain" severity="secondary">
+                            <i class="pi pi-refresh mr-1" style="font-size: 0.8rem" />
+                            <span class="text-sm">生成新示例</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabPanel>
+
+            <!-- 事件类型面板 -->
+            <TabPanel value="incident-types">
+              <Card class="mt-4">
+                <template #title>
+                  <div class="flex justify-content-between align-items-center">
+                    <span>事件类型列表</span>
+                    <Button label="管理" icon="pi pi-cog" />
+                  </div>
+                </template>
+                <template #content>
+                  <DataTable :value="incidentTypes" stripedRows>
+                    <Column field="id" header="ID" />
+                    <Column field="name" header="名称" />
+                    <Column field="description" header="描述" />
+                    <Column field="createdAt" header="创建时间" />
+                  </DataTable>
+                </template>
+              </Card>
+            </TabPanel>
+
+            <!-- 路由配置面板 -->
+            <TabPanel value="routes">
+              <Card class="mt-4">
+                <template #title>
+                  <div class="flex justify-content-between align-items-center">
+                    <span>路由列表</span>
+                    <Button label="管理" icon="pi pi-cog" />
+                  </div>
+                </template>
+                <template #content>
+                  <DataTable :value="routes" stripedRows>
+                    <Column field="id" header="ID" />
+                    <Column field="service" header="服务" />
+                    <Column field="target" header="目标团队/用户" />
+                    <Column field="createdAt" header="创建时间" />
+                  </DataTable>
+                </template>
+              </Card>
+            </TabPanel>
+
+            <!-- 自定义字段面板 -->
+            <TabPanel value="custom-fields">
+              <Card class="mt-4">
+                <template #title>
+                  <div class="flex justify-content-between align-items-center">
+                    <span>自定义字段列表</span>
+                    <Button label="管理" icon="pi pi-cog" />
+                  </div>
+                </template>
+                <template #content>
+                  <DataTable :value="customFields" stripedRows>
+                    <Column field="id" header="ID" />
+                    <Column field="service" header="服务" />
+                    <Column field="name" header="名称" />
+                    <Column field="type" header="类型" />
+                    <Column field="createdAt" header="创建时间" />
+                  </DataTable>
+                </template>
+              </Card>
+            </TabPanel>
+
+            <!-- 排班管理面板 -->
+            <TabPanel value="schedules">
+              <Card class="mt-4">
+                <template #content>
+                  <h2>排班管理功能开发中...</h2>
+                </template>
+              </Card>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </div>
     </div>
   </div>
 </template>
 
-<style scoped>
-.service-detail-page {
-  @apply p-6;
-}
-
-.back-link {
-  @apply mb-6;
-}
-
-.back-button {
-  @apply flex items-center gap-2 text-text-color-secondary hover:text-text-color transition-colors;
-}
-
-.loading-state,
-.error-state {
-  @apply flex flex-col items-center justify-center p-12 text-text-color-secondary;
-}
-
-.loading-state i,
-.error-state i {
-  @apply text-4xl mb-4;
-}
-
-.retry-button {
-  @apply mt-4 px-4 py-2 bg-surface-hover text-text-color rounded-lg hover:bg-surface-hover/80 transition-colors;
-}
-
-.service-detail {
-  @apply space-y-6;
-}
-
-.service-header {
-  @apply flex justify-between items-center bg-surface-card p-6 rounded-lg shadow-sm;
-}
-
-.service-title {
-  @apply flex items-center gap-3;
-}
-
-.service-title i {
-  @apply text-2xl text-text-color-secondary;
-}
-
-.service-title h1 {
-  @apply text-2xl font-semibold text-text-color;
-}
-
-.service-status {
-  @apply px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium;
-}
-
-.status-healthy {
-  @apply bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400;
-}
-
-.status-warning {
-  @apply bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400;
-}
-
-.status-critical {
-  @apply bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400;
-}
-
-.status-maintenance {
-  @apply bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400;
-}
-
-.status-normal {
-  @apply bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400;
-}
-
-.service-info {
-  @apply bg-surface-card p-6 rounded-lg shadow-sm;
-}
-
-.service-info-grid {
-  @apply grid grid-cols-2 md:grid-cols-4 gap-6;
-}
-
-.info-item {
-  @apply space-y-1;
-}
-
-.info-label {
-  @apply text-sm text-text-color-secondary;
-}
-
-.info-value {
-  @apply text-lg font-medium text-text-color;
-}
-
-.metrics-grid {
-  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
-}
-
-.metric-card {
-  @apply bg-surface-card p-6 rounded-lg shadow-sm;
-}
-
-.metric-header {
-  @apply flex justify-between items-center mb-4;
-}
-
-.metric-name {
-  @apply text-lg font-medium text-text-color;
-}
-
-.metric-value {
-  @apply text-2xl font-semibold text-text-color;
-}
-
-.metric-unit {
-  @apply text-sm text-text-color-secondary;
-}
-
-.incidents-list {
-  @apply space-y-4;
-}
-
-.incident-item {
-  @apply flex justify-between items-center p-4 bg-surface-hover rounded-lg;
-}
-
-.incident-info {
-  @apply space-y-1;
-}
-
-.incident-title {
-  @apply font-medium text-text-color;
-}
-
-.incident-date {
-  @apply text-sm text-text-color-secondary;
-}
-
-.incident-status {
-  @apply px-3 py-1 rounded-full text-sm font-medium;
-}
-
-.status-open {
-  @apply bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400;
-}
-
-.status-in_progress {
-  @apply bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400;
-}
-
-.status-closed {
-  @apply bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400;
-}
-
-.service-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.loading-state, .error-state, .not-found {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 0;
-  text-align: center;
-}
-
-.loading-state i, .error-state i, .not-found i {
-  font-size: 48px;
-  margin-bottom: 16px;
-  color: #ccc;
-}
-
-.error-state i {
-  color: #f44336;
-}
-
-.retry-button, .back-link-button {
-  margin-top: 15px;
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  text-decoration: none;
-  color: #333;
-}
-
-.retry-button:hover, .back-link-button:hover {
-  background-color: #e0e0e0;
-}
-</style>

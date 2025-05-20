@@ -3,5 +3,5 @@ export class AlertCreatedResponseDto {
 
   alertId: number;
 
-  serviceId: number;
+  serviceId: string;
 } 

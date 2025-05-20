@@ -33,7 +33,7 @@ export class AlertService {
     if (serviceValue) {
       where.service = {
         OR: [
-          { id: isNaN(+serviceValue) ? undefined : +serviceValue },
+          { id: serviceValue },
           { name: { contains: serviceValue } }
         ]
       };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { ref, watch } from 'vue';
-import Dropdown from 'primevue/dropdown';
+import Select from 'primevue/select';
 
 const { locale } = useI18n();
 
@@ -23,7 +23,7 @@ watch(selectedLanguage, (newValue) => {
 </script>
 
 <template>
-  <Dropdown v-model="selectedLanguage" :options="languages" optionLabel="name" class="lang-dropdown-btn" :pt="{
+  <Select v-model="selectedLanguage" :options="languages" optionLabel="name" :pt="{
     root: { class: 'min-w-[100px]' },
     input: { class: 'font-normal' }
   }">
@@ -37,5 +37,5 @@ watch(selectedLanguage, (newValue) => {
         <span>{{ slotProps.option.name }}</span>
       </div>
     </template>
-  </Dropdown>
+  </Select>
 </template>

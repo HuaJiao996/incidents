@@ -8,7 +8,7 @@ import { IncidentSeverity } from '@prisma/client';
 interface ProcessIncidentJob {
   incidentId: number;
   severity: IncidentSeverity;
-  serviceId: number;
+  serviceId: string;
 }
 
 @Processor('incidentQueue')

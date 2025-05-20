@@ -8,7 +8,7 @@ export class IncidentDto implements Incident {
   description: string | null;
   status: $Enums.IncidentStatus;
   severity: $Enums.IncidentSeverity;
-  serviceId: number;
+  serviceId: string;
   typeId: number | null;
   createdAt: Date;
   updatedAt: Date;
