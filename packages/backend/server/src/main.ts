@@ -9,9 +9,8 @@ import { HttpExceptionFilter } from '@libs/common/filters/http-exception.filter'
 import { LoggingInterceptor } from '@libs/common/interceptors/logging.interceptor';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 
-
 async function bootstrap() {
-  patchNestJsSwagger()
+  patchNestJsSwagger();
   const app = await NestFactory.create<NestFastifyApplication>(
     ServerModule,
     new FastifyAdapter(),
@@ -26,9 +25,7 @@ async function bootstrap() {
 
   app.enableCors();
 
-
-  const config = new DocumentBuilder()
-    .build();
+  const config = new DocumentBuilder().build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, documentFactory, {
     jsonDocumentUrl: 'swagger/json',
