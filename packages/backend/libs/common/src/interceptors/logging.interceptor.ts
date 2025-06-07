@@ -15,7 +15,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<FastifyRequest>();
-    const { method, url, body = {}, params  = {}, query = {} } = request;
+    const { method, url, body = {}, params = {}, query = {} } = request;
     const userAgent = request.headers['user-agent'] || '';
     const ip = request.ip;
     const now = Date.now();
@@ -23,15 +23,15 @@ export class LoggingInterceptor implements NestInterceptor {
       `Request Start - ${method} ${url} - IP: ${ip} - UserAgent: ${userAgent}`,
     );
 
-    if (Object.keys(body as {}).length > 0) {
+    if (Object.keys(body as object).length > 0) {
       this.logger.debug(`Request Body: ${JSON.stringify(body)}`);
     }
 
-    if (Object.keys(params as {}).length > 0) {
+    if (Object.keys(params as object).length > 0) {
       this.logger.debug(`Url Params: ${JSON.stringify(params)}`);
     }
 
-    if (Object.keys(query as {}).length > 0) {
+    if (Object.keys(query as object).length > 0) {
       this.logger.debug(`Query: ${JSON.stringify(query)}`);
     }
 

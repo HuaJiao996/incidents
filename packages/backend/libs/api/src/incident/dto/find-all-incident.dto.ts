@@ -15,4 +15,6 @@ export const FindAllIncidentQuerySchema = PaginationQuerySchema.extend({
   updatedAtEnd: z.string().optional(),
 });
 
-export class FindAllIncidentDto extends createZodDto(FindAllIncidentQuerySchema) {} 
+export class FindAllIncidentDto extends createZodDto(
+  FindAllIncidentQuerySchema,
+) {}

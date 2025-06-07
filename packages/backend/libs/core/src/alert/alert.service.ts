@@ -26,20 +26,26 @@ export class AlertService {
     private readonly redisService: RedisService,
   ) {}
 
-  private async validateGlobalCustomFields(createAlertDto: CreateAlertDto): Promise<ValidationResult> {
-    const globalCustomFields = await this.databaseService.client.globalCustomField.findMany();
+  private async validateGlobalCustomFields(
+    createAlertDto: CreateAlertDto,
+  ): Promise<ValidationResult> {
+    const globalCustomFields =
+      await this.databaseService.client.globalCustomField.findMany();
     return this.validateCustomFields(createAlertDto, globalCustomFields);
   }
 
   private validateCustomFields(
-    createAlertDto: CreateAlertDto, 
-    customFields: (GlobalCustomField | ServiceCustomField)[]
+    createAlertDto: CreateAlertDto,
+    customFields: (GlobalCustomField | ServiceCustomField)[],
   ): ValidationResult {
     const errors: { field: string; reason: string }[] = [];
 
     for (const customField of customFields) {
       this.logger.debug(customField);
-      const fieldValue = get<unknown>(createAlertDto.customFields, customField.path);
+      const fieldValue = get<unknown>(
+        createAlertDto.customFields,
+        customField.path,
+      );
 
       const validator = customFieldValidators[customField.type];
       if (!validator) {
@@ -58,7 +64,9 @@ export class AlertService {
       if (!result.valid) {
         errors.push({
           field: customField.path,
-          reason: result.reason || `Invalid value for field type: ${customField.type}`,
+          reason:
+            result.reason ||
+            `Invalid value for field type: ${customField.type}`,
         });
       }
     }
@@ -69,8 +77,11 @@ export class AlertService {
     };
   }
 
-  async createAlert(createAlertDto: CreateAlertDto): Promise<AlertCreatedResponseDto> {
-    const globalFieldValidation = await this.validateGlobalCustomFields(createAlertDto);
+  async createAlert(
+    createAlertDto: CreateAlertDto,
+  ): Promise<AlertCreatedResponseDto> {
+    const globalFieldValidation =
+      await this.validateGlobalCustomFields(createAlertDto);
     if (!globalFieldValidation.valid) {
       throw new CustomFieldValidationException(
         globalFieldValidation.errors,
@@ -78,7 +89,8 @@ export class AlertService {
       );
     }
 
-    const serviceRoutes = await this.databaseService.client.serviceRoute.findMany();
+    const serviceRoutes =
+      await this.databaseService.client.serviceRoute.findMany();
     this.logger.debug(serviceRoutes);
 
     const engine = new RuleEngine<string>();
@@ -103,13 +115,14 @@ export class AlertService {
   ): Promise<AlertCreatedResponseDto> {
     if (!serviceId) {
       throw new HttpException(
-        "No matching service found",
+        'No matching service found',
         HttpStatus.NOT_FOUND,
       );
     }
 
     if (validateGlobalFields) {
-      const globalFieldValidation = await this.validateGlobalCustomFields(createAlertDto);
+      const globalFieldValidation =
+        await this.validateGlobalCustomFields(createAlertDto);
       if (!globalFieldValidation.valid) {
         throw new CustomFieldValidationException(
           globalFieldValidation.errors,
@@ -120,9 +133,9 @@ export class AlertService {
 
     const service = await this.databaseService.client.service.findUnique({
       where: { id: serviceId },
-      include: { customFields: true }
+      include: { customFields: true },
     });
-      
+
     if (!service) {
       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
     }
@@ -142,19 +155,19 @@ export class AlertService {
       data: {
         content: createAlertDto.content,
         title: createAlertDto.title,
-        customFields: createAlertDto.customFields 
-          ? JSON.parse(JSON.stringify(createAlertDto.customFields)) 
+        customFields: createAlertDto.customFields
+          ? JSON.parse(JSON.stringify(createAlertDto.customFields))
           : undefined,
         serviceId,
       },
-      select: { id: true }
+      select: { id: true },
     });
 
     await this.alertQueue.add('alert', alertData.id);
 
     return {
       alertId: alertData.id,
-      serviceId
+      serviceId,
     };
   }
 }

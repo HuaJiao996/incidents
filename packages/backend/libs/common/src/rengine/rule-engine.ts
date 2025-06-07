@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { ExpressionEngine } from './expression-engine';
 
-
 interface Rule<T> {
   engine: ExpressionEngine;
   result: T;
@@ -12,7 +11,10 @@ interface Rule<T> {
  * Rule Engine Error Class
  */
 export class RuleEngineError extends Error {
-  constructor(message: string, public code: string) {
+  constructor(
+    message: string,
+    public code: string,
+  ) {
     super(message);
     this.name = 'RuleEngineError';
   }
@@ -34,13 +36,12 @@ export class RuleEngine<T = never> {
    * @param type Event type
    * @throws RuleEngineError
    */
-  appendRule(
-    expression: string,
-    matchedResult: T,
-    priority: number = 0,
-  ): void {
+  appendRule(expression: string, matchedResult: T, priority: number = 0): void {
     if (!expression || typeof expression !== 'string') {
-      throw new RuleEngineError('Expression cannot be empty', 'INVALID_EXPRESSION');
+      throw new RuleEngineError(
+        'Expression cannot be empty',
+        'INVALID_EXPRESSION',
+      );
     }
 
     try {
@@ -48,12 +49,12 @@ export class RuleEngine<T = never> {
       this.rules.push({
         engine,
         result: matchedResult,
-        priority
+        priority,
       });
     } catch (error) {
       throw new RuleEngineError(
         `Rule creation failed: ${error instanceof Error ? error.message : String(error)}`,
-        'RULE_CREATION_FAILED'
+        'RULE_CREATION_FAILED',
       );
     }
   }
@@ -63,8 +64,7 @@ export class RuleEngine<T = never> {
    * @param facts Fact data
    */
   async run(facts: any): Promise<T | undefined> {
-    const sortedRules = [...this.rules]
-      .sort((a, b) => b.priority - a.priority);
+    const sortedRules = [...this.rules].sort((a, b) => b.priority - a.priority);
 
     for (const rule of sortedRules) {
       const matched = await rule.engine.evaluate(facts);
@@ -73,4 +73,4 @@ export class RuleEngine<T = never> {
       }
     }
   }
-} 
+}

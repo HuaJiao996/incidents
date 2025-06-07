@@ -71,14 +71,14 @@ export const customFieldValidators = {
 
     // 尝试将值转换为Date对象
     const date = new Date(fieldValue as string);
-    
+
     // 检查日期是否有效
     return !isNaN(date.getTime())
       ? { valid: true }
-      : { valid: false, reason: `Value "${fieldValue}" is not a valid date` };
+      : { valid: false, reason: `Value is not a valid date` };
   },
 
-  ENUM: (required: boolean, fieldValue?: unknown, enumValues?: any) => {
+  ENUM: (required: boolean, fieldValue?: unknown, enumValues?: string[]) => {
     // 先检查字段值是否存在
     if (fieldValue === undefined || fieldValue === null) {
       return required
@@ -87,10 +87,12 @@ export const customFieldValidators = {
     }
 
     // 处理enumValues为JSON类型的情况
-    const values = Array.isArray(enumValues) 
-      ? enumValues 
-      : (enumValues ? JSON.parse(JSON.stringify(enumValues)) : []);
-    
+    const values = Array.isArray(enumValues)
+      ? enumValues
+      : enumValues
+        ? JSON.parse(JSON.stringify(enumValues))
+        : [];
+
     // 检查枚举值列表是否有效
     if (!Array.isArray(values) || values.length === 0) {
       return { valid: false, reason: 'Invalid enum values list' };
@@ -101,7 +103,7 @@ export const customFieldValidators = {
       ? { valid: true }
       : {
           valid: false,
-          reason: `Value "${fieldValue}" is not in allowed enum values [${values.join(', ')}]`,
+          reason: `Value is not in allowed enum values [${values.join(', ')}]`,
         };
   },
 };

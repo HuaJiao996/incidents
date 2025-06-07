@@ -10,4 +10,4 @@ export const FindAllAlertQuerySchema = PaginationQuerySchema.extend({
   endTime: z.string().optional(),
 });
 
-export class FindAllAlertDto extends createZodDto(FindAllAlertQuerySchema) {} 
+export class FindAllAlertDto extends createZodDto(FindAllAlertQuerySchema) {}

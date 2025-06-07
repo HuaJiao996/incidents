@@ -100,14 +100,16 @@ async function main() {
       update: {
         serviceId: 1,
         order: 3,
-        condition: '(title|matches("前端") && content|matches("错误")) || (title|matches("UI") && content|matches("崩溃"))',
+        condition:
+          '(title|matches("前端") && content|matches("错误")) || (title|matches("UI") && content|matches("崩溃"))',
         description: '前端UI错误路由',
       },
       create: {
         id: 4,
         serviceId: 1,
         order: 3,
-        condition: '(title|matches("前端") && content|matches("错误")) || (title|matches("UI") && content|matches("崩溃"))',
+        condition:
+          '(title|matches("前端") && content|matches("错误")) || (title|matches("UI") && content|matches("崩溃"))',
         description: '前端UI错误路由',
       },
     }),
@@ -181,7 +183,8 @@ async function main() {
         title: '网站崩溃: #{alert.title}',
         description: '发生时间: #{alert.createdAt}\n详细信息: #{alert.content}',
         condition: 'title|matches("崩溃")',
-        groupCondition: 'incident.status != "RESOLVED" && title|matches("崩溃") && incident.createdAt > (now - 3600000)',
+        groupCondition:
+          'incident.status != "RESOLVED" && title|matches("崩溃") && incident.createdAt > (now - 3600000)',
         priority: 0,
       },
       create: {
@@ -191,7 +194,8 @@ async function main() {
         title: '网站崩溃: #{alert.title}',
         description: '发生时间: #{alert.createdAt}\n详细信息: #{alert.content}',
         condition: 'title|matches("崩溃")',
-        groupCondition: 'incident.status != "RESOLVED" && title|matches("崩溃") && incident.createdAt > (now - 3600000)',
+        groupCondition:
+          'incident.status != "RESOLVED" && title|matches("崩溃") && incident.createdAt > (now - 3600000)',
         priority: 0,
       },
     }),
@@ -201,9 +205,11 @@ async function main() {
         name: 'API超时',
         serviceId: 2,
         title: 'API超时告警: #{alert.title}',
-        description: '接口: #{alert.customFields.endpoint}\n详细信息: #{alert.content}',
+        description:
+          '接口: #{alert.customFields.endpoint}\n详细信息: #{alert.content}',
         condition: 'title|matches("超时")',
-        groupCondition: 'incident.status != "RESOLVED" && title == "API超时" && alert.customFields.environment == "production" && incident.serviceId == alert.serviceId',
+        groupCondition:
+          'incident.status != "RESOLVED" && title == "API超时" && alert.customFields.environment == "production" && incident.serviceId == alert.serviceId',
         priority: 0,
       },
       create: {
@@ -211,9 +217,11 @@ async function main() {
         name: 'API超时',
         serviceId: 2,
         title: 'API超时告警: #{alert.title}',
-        description: '接口: #{alert.customFields.endpoint}\n详细信息: #{alert.content}',
+        description:
+          '接口: #{alert.customFields.endpoint}\n详细信息: #{alert.content}',
         condition: 'title|matches("超时")',
-        groupCondition: 'incident.status != "RESOLVED" && title == "API超时" && alert.customFields.environment == "production" && incident.serviceId == alert.serviceId',
+        groupCondition:
+          'incident.status != "RESOLVED" && title == "API超时" && alert.customFields.environment == "production" && incident.serviceId == alert.serviceId',
         priority: 0,
       },
     }),
@@ -223,9 +231,11 @@ async function main() {
         name: '数据库连接异常',
         serviceId: 3,
         title: 'DB异常: #{alert.title}',
-        description: '查询: #{alert.customFields.query}\n详细信息: #{alert.content}',
+        description:
+          '查询: #{alert.customFields.query}\n详细信息: #{alert.content}',
         condition: 'title|matches("连接")',
-        groupCondition: 'incident.status != "RESOLVED" && title|matches("连接") && incident.serviceId == alert.serviceId && incident.createdAt > (now - 1800000)',
+        groupCondition:
+          'incident.status != "RESOLVED" && title|matches("连接") && incident.serviceId == alert.serviceId && incident.createdAt > (now - 1800000)',
         priority: 0,
       },
       create: {
@@ -233,9 +243,11 @@ async function main() {
         name: '数据库连接异常',
         serviceId: 3,
         title: 'DB异常: #{alert.title}',
-        description: '查询: #{alert.customFields.query}\n详细信息: #{alert.content}',
+        description:
+          '查询: #{alert.customFields.query}\n详细信息: #{alert.content}',
         condition: 'title|matches("连接")',
-        groupCondition: 'incident.status != "RESOLVED" && title|matches("连接") && incident.serviceId == alert.serviceId && incident.createdAt > (now - 1800000)',
+        groupCondition:
+          'incident.status != "RESOLVED" && title|matches("连接") && incident.serviceId == alert.serviceId && incident.createdAt > (now - 1800000)',
         priority: 0,
       },
     }),
@@ -245,9 +257,12 @@ async function main() {
         name: '复杂前端错误',
         serviceId: 1,
         title: '前端错误: #{alert.title} (#{alert.customFields.browser})',
-        description: '浏览器: #{alert.customFields.browser}\n优先级: #{alert.customFields.priority}\n详细信息: #{alert.content}',
-        condition: '(title|matches("前端") && customFields.browser == "Chrome") || (title|matches("UI") && customFields.priority == "high" && content|matches("紧急"))',
-        groupCondition: 'incident.status != "RESOLVED" && customFields.browser == incident.alerts[0].customFields.browser && ["high", "critical"].includes(customFields.priority) && incident.createdAt > (now - 7200000)',
+        description:
+          '浏览器: #{alert.customFields.browser}\n优先级: #{alert.customFields.priority}\n详细信息: #{alert.content}',
+        condition:
+          '(title|matches("前端") && customFields.browser == "Chrome") || (title|matches("UI") && customFields.priority == "high" && content|matches("紧急"))',
+        groupCondition:
+          'incident.status != "RESOLVED" && customFields.browser == incident.alerts[0].customFields.browser && ["high", "critical"].includes(customFields.priority) && incident.createdAt > (now - 7200000)',
         priority: 1,
       },
       create: {
@@ -255,9 +270,12 @@ async function main() {
         name: '复杂前端错误',
         serviceId: 1,
         title: '前端错误: #{alert.title} (#{alert.customFields.browser})',
-        description: '浏览器: #{alert.customFields.browser}\n优先级: #{alert.customFields.priority}\n详细信息: #{alert.content}',
-        condition: '(title|matches("前端") && customFields.browser == "Chrome") || (title|matches("UI") && customFields.priority == "high" && content|matches("紧急"))',
-        groupCondition: 'incident.status != "RESOLVED" && customFields.browser == incident.alerts[0].customFields.browser && ["high", "critical"].includes(customFields.priority) && incident.createdAt > (now - 7200000)',
+        description:
+          '浏览器: #{alert.customFields.browser}\n优先级: #{alert.customFields.priority}\n详细信息: #{alert.content}',
+        condition:
+          '(title|matches("前端") && customFields.browser == "Chrome") || (title|matches("UI") && customFields.priority == "high" && content|matches("紧急"))',
+        groupCondition:
+          'incident.status != "RESOLVED" && customFields.browser == incident.alerts[0].customFields.browser && ["high", "critical"].includes(customFields.priority) && incident.createdAt > (now - 7200000)',
         priority: 1,
       },
     }),
@@ -271,14 +289,16 @@ async function main() {
       update: {
         severity: 'CRITICAL',
         incidentTypeId: 1,
-        condition: 'content|matches("完全无法访问") || customFields.affectedUsers > 1000',
+        condition:
+          'content|matches("完全无法访问") || customFields.affectedUsers > 1000',
         order: 0,
       },
       create: {
         id: 1,
         severity: 'CRITICAL',
         incidentTypeId: 1,
-        condition: 'content|matches("完全无法访问") || customFields.affectedUsers > 1000',
+        condition:
+          'content|matches("完全无法访问") || customFields.affectedUsers > 1000',
         order: 0,
       },
     }),
@@ -287,14 +307,16 @@ async function main() {
       update: {
         severity: 'HIGH',
         incidentTypeId: 1,
-        condition: 'content|matches("部分功能无法使用") || customFields.affectedUsers > 500',
+        condition:
+          'content|matches("部分功能无法使用") || customFields.affectedUsers > 500',
         order: 1,
       },
       create: {
         id: 2,
         severity: 'HIGH',
         incidentTypeId: 1,
-        condition: 'content|matches("部分功能无法使用") || customFields.affectedUsers > 500',
+        condition:
+          'content|matches("部分功能无法使用") || customFields.affectedUsers > 500',
         order: 1,
       },
     }),
@@ -428,4 +450,4 @@ main()
     console.error(e);
     await prisma.$disconnect();
     process.exit(1);
-  }); 
+  });

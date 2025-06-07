@@ -11,9 +11,12 @@ import { get } from 'radash';
  * const result = compileTemplate(template, context);
  * // 结果: '用户 Alice 在 2024-01-01 登录系统'
  */
-export function compileTemplate(template: string, context: Record<string, unknown>): string {
+export function compileTemplate(
+  template: string,
+  context: Record<string, unknown>,
+): string {
   return template.replace(/#{(.*?)}/g, (_, path) => {
     const value = get(context, path.trim());
     return value !== undefined ? String(value) : '';
   });
-} 
+}

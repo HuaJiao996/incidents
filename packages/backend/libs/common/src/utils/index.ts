@@ -1,1 +1,1 @@
-export * from './template.util'; 
+export * from './template.util';

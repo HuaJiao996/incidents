@@ -1,1 +1,1 @@
-export * from './api-zod-query.decorator'; 
+export * from './api-zod-query.decorator';

@@ -43,20 +43,20 @@ export class AlertProcessor extends WorkerHost {
   private async fetchAlert(alertId: number) {
     return this.databaseService.client.alert.findUnique({
       where: {
-        id: alertId
+        id: alertId,
       },
       include: {
         service: {
           include: {
             incidentTypes: {
               orderBy: {
-                priority: 'desc'
-              }
-            }
-          }
-        }
-      }
-    })
+                priority: 'desc',
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   private async matchIncidentType(
@@ -80,7 +80,7 @@ export class AlertProcessor extends WorkerHost {
     });
 
     const [error, matchedIncidentType] = await tryit(() =>
-      incidentTypeChecker.run(alert)
+      incidentTypeChecker.run(alert),
     )();
 
     if (error) {
@@ -98,32 +98,31 @@ export class AlertProcessor extends WorkerHost {
     return matchedIncidentType;
   }
 
-  private async handleIncident(
-    alert: Alert,
-    incidentType: IncidentType,
-  ) {
+  private async handleIncident(alert: Alert, incidentType: IncidentType) {
     this.logger.log(`处理告警 ${alert.id} 为事件类型 ${incidentType.name}`);
-    let existingIncident: Incident | undefined
-    
+    let existingIncident: Incident | undefined;
+
     if (incidentType.groupCondition) {
       // 1. 首先检索 IncidentType 下所有非 RESOLVED 状态的 Incident
-      const openIncidents = await this.databaseService.client.incident.findMany({
-        where: {
-          typeId: incidentType.id,
-          status: {
-            not: IncidentStatus.RESOLVED
-          }
-        }
-      });
+      const openIncidents = await this.databaseService.client.incident.findMany(
+        {
+          where: {
+            typeId: incidentType.id,
+            status: {
+              not: IncidentStatus.RESOLVED,
+            },
+          },
+        },
+      );
 
       if (openIncidents.length) {
         const groupChecker = new RuleEngine<true>();
         for (const openIncident of openIncidents) {
           groupChecker.appendRule(incidentType.groupCondition, true);
-          const [error, matched] = await tryit(() => 
-            groupChecker.run({ alert, incident: openIncident })
+          const [error, matched] = await tryit(() =>
+            groupChecker.run({ alert, incident: openIncident }),
           )();
-          
+
           if (!error && matched) {
             existingIncident = openIncident;
             break;
@@ -135,12 +134,17 @@ export class AlertProcessor extends WorkerHost {
     if (existingIncident) {
       await this.databaseService.client.alert.update({
         where: { id: alert.id },
-        data: { incidentId: existingIncident.id }
+        data: { incidentId: existingIncident.id },
       });
     } else {
       const title = compileTemplate(incidentType.title, { alert });
       const description = compileTemplate(incidentType.description, { alert });
-      await this.incidentService.createIncident(alert, incidentType, title, description);
+      await this.incidentService.createIncident(
+        alert,
+        incidentType,
+        title,
+        description,
+      );
     }
   }
 }

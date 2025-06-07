@@ -1,6 +1,4 @@
 import { $Enums, Incident } from '@prisma/client';
-import { ServiceDto } from './service.dto';
-import { IncidentTypeDto } from './incident-type.dto';
 
 export class IncidentDto implements Incident {
   id: number;
@@ -12,6 +10,4 @@ export class IncidentDto implements Incident {
   typeId: number | null;
   createdAt: Date;
   updatedAt: Date;
-
 }
-

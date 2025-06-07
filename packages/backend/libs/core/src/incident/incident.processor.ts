@@ -14,7 +14,7 @@ interface ProcessIncidentJob {
 @Processor('incidentQueue')
 export class IncidentProcessor extends WorkerHost {
   private readonly logger = new Logger(IncidentProcessor.name);
-  
+
   constructor(
     private readonly incidentService: IncidentService,
     private readonly databaseService: DatabaseService,
@@ -24,7 +24,7 @@ export class IncidentProcessor extends WorkerHost {
 
   async process(job: Job<ProcessIncidentJob>) {
     const { incidentId, severity, serviceId } = job.data;
-    
+
     this.logger.log(
       `Processing incident: id=${incidentId}, severity=${severity}, serviceId=${serviceId}`,
     );
@@ -48,22 +48,22 @@ export class IncidentProcessor extends WorkerHost {
           this.logger.log(`Critical incident detected: ${incidentId}`);
           // TODO: 实现关键事件的处理逻辑
           break;
-        
+
         case IncidentSeverity.HIGH:
           this.logger.log(`High severity incident detected: ${incidentId}`);
           // TODO: 实现高优先级事件的处理逻辑
           break;
-        
+
         case IncidentSeverity.MEDIUM:
           this.logger.log(`Medium severity incident detected: ${incidentId}`);
           // TODO: 实现中等优先级事件的处理逻辑
           break;
-        
+
         case IncidentSeverity.LOW:
           this.logger.log(`Low severity incident detected: ${incidentId}`);
           // TODO: 实现低优先级事件的处理逻辑
           break;
-        
+
         default:
           this.logger.warn(`Unknown severity level: ${severity}`);
       }

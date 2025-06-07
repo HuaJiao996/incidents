@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ServiceRouteService } from './service-route.service';
 import { CreateServiceRouteDto } from './dto/create-service-route.dto';
 import { UpdateServiceRouteDto } from './dto/update-service-route.dto';
@@ -23,7 +31,10 @@ export class ServiceRouteController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServiceRouteDto: UpdateServiceRouteDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateServiceRouteDto: UpdateServiceRouteDto,
+  ) {
     return this.serviceRouteService.update(+id, updateServiceRouteDto);
   }
 

@@ -7,15 +7,15 @@ import { Prisma } from '@prisma/client';
 @Injectable()
 export class ServiceService {
   constructor(private readonly databaseService: DatabaseService) {}
-  
+
   async create(createServiceDto: CreateServiceDto): Promise<string> {
     const service = await this.databaseService.client.service.create({
       data: createServiceDto,
       select: {
-        id: true
-      }
+        id: true,
+      },
     });
-      
+
     return service.id;
   }
 
@@ -107,7 +107,7 @@ export class ServiceService {
   update(id: string, updateServiceDto: CreateServiceDto) {
     return this.databaseService.client.service.update({
       where: { id: id },
-      data: updateServiceDto
+      data: updateServiceDto,
     });
   }
 }

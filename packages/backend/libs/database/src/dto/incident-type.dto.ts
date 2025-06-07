@@ -1,4 +1,4 @@
-import { $Enums, Incident, IncidentType } from '@prisma/client';
+import { IncidentType } from '@prisma/client';
 
 export class IncidentTypeDto implements IncidentType {
   name: string;

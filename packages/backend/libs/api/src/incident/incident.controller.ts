@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { IncidentService } from './incident.service';
 import { IncidentResponseDto } from './dto/incident.response.dto';
 import { FindAllIncidentDto } from './dto/find-all-incident.dto';
@@ -23,5 +31,4 @@ export class IncidentController {
   // update(@Param('id') id: string, @Body() updateIncidentDto: CreateIncidentDto) {
   //   return this.incidentService.update(+id, updateIncidentDto);
   // }
-
 }

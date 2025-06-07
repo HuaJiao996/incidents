@@ -1,4 +1,9 @@
-import { Injectable, OnModuleDestroy, OnModuleInit, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+  Logger,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 // 定义扩展的 Prisma 客户端类型
@@ -37,7 +42,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   get client() {
     return this._prisma;
   }
-
 }
 
 // 扩展工厂函数，为 Prisma 客户端添加通用功能
@@ -51,7 +55,6 @@ function createPrismaExtension() {
     ],
     errorFormat: 'pretty',
   });
-
 
   // 通过 $extends 机制添加功能
   return prisma.$extends({});

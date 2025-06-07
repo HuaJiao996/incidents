@@ -23,13 +23,16 @@ export class IncidentService {
     incidentType: IncidentType,
   ): Promise<IncidentSeverity> {
     // 获取事件类型的所有严重程度条件
-    const severityConditions = await this.databaseService.client.incidentTypeSeverityCondition.findMany({
-      where: { incidentTypeId: incidentType.id },
-      orderBy: { order: 'asc' },
-    });
+    const severityConditions =
+      await this.databaseService.client.incidentTypeSeverityCondition.findMany({
+        where: { incidentTypeId: incidentType.id },
+        orderBy: { order: 'asc' },
+      });
 
     if (!severityConditions || severityConditions.length === 0) {
-      this.logger.warn(`No severity conditions found for incident type ${incidentType.id}, using default HIGH`);
+      this.logger.warn(
+        `No severity conditions found for incident type ${incidentType.id}, using default HIGH`,
+      );
       return IncidentSeverity.HIGH;
     }
 
@@ -54,8 +57,8 @@ export class IncidentService {
     };
 
     // 执行规则评估
-    const [error, matchedSeverity] = await tryit(() => 
-      severityChecker.run(context)
+    const [error, matchedSeverity] = await tryit(() =>
+      severityChecker.run(context),
     )();
 
     if (error) {
@@ -80,7 +83,7 @@ export class IncidentService {
   }
 
   async createIncident(
-    alert: Alert, 
+    alert: Alert,
     incidentType: IncidentType,
     title: string,
     description: string,
@@ -88,34 +91,38 @@ export class IncidentService {
     this.logger.log(
       `Create incident: alertId=${alert.id}, incidentTypeId=${incidentType.id}, serviceId=${incidentType.serviceId}`,
     );
-    
+
     // 确定事件严重程度
     const severity = await this.determineSeverity(alert, incidentType);
     this.logger.log(`Determined severity: ${severity} for alert ${alert.id}`);
-    
+
     // 使用 Prisma 事务创建事件并更新告警
-    const result = await this.databaseService.client.$transaction(async (tx) => {
-      // 创建新事件
-      const incident = await tx.incident.create({
-        data: {
-          title,
-          typeId: incidentType.id,
-          description,
-          severity,
-          serviceId: incidentType.serviceId
-        },
-      });
+    const result = await this.databaseService.client.$transaction(
+      async (tx) => {
+        // 创建新事件
+        const incident = await tx.incident.create({
+          data: {
+            title,
+            typeId: incidentType.id,
+            description,
+            severity,
+            serviceId: incidentType.serviceId,
+          },
+        });
 
-      // 更新告警，关联到新创建的事件
-      const updatedAlert = await tx.alert.update({
-        where: { id: alert.id },
-        data: { incidentId: incident.id },
-      });
+        // 更新告警，关联到新创建的事件
+        const updatedAlert = await tx.alert.update({
+          where: { id: alert.id },
+          data: { incidentId: incident.id },
+        });
 
-      return { incident, updatedAlert };
-    });
+        return { incident, updatedAlert };
+      },
+    );
 
-    this.logger.log(`Incident created successfully: incidentId=${result.incident.id}`);
+    this.logger.log(
+      `Incident created successfully: incidentId=${result.incident.id}`,
+    );
 
     // 添加到处理队列
     await this.incidentQueue.add('process', {
@@ -140,8 +147,10 @@ export class IncidentService {
       `Updating incident: incidentId=${incidentId}, alertId=${alertId}, resolved=${resolved}`,
     );
 
-    const updateData: any = {
+    const updateData = {
       lastAlertId: alertId,
+      status: '',
+      resolvedAt: new Date(),
     };
 
     if (resolved) {
@@ -150,7 +159,7 @@ export class IncidentService {
     }
 
     // 使用 Prisma 更新事件
-    const updatedIncident = await this.databaseService.client.incident.update({
+    await this.databaseService.client.incident.update({
       where: { id: incidentId },
       data: updateData,
     });

@@ -1,104 +1,96 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import Button from 'primevue/button';
-import Tabs from 'primevue/tabs';
-import TabList from 'primevue/tablist';
-import Tab from 'primevue/tab';
-import TabPanels from 'primevue/tabpanels';
-import TabPanel from 'primevue/tabpanel';
-import InputText from 'primevue/inputtext';
-import Textarea from 'primevue/textarea';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import ProgressSpinner from 'primevue/progressspinner';
-import Message from 'primevue/message';
-import Card from 'primevue/card';
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import Button from 'primevue/button'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
+import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import ProgressSpinner from 'primevue/progressspinner'
+import Message from 'primevue/message'
+import Card from 'primevue/card'
 
-const { t } = useI18n();
-const route = useRoute();
-const serviceId = route.params.id as string;
+const { t } = useI18n()
+const route = useRoute()
+const serviceId = route.params.id as string
 
 // 定义服务数据结构
 interface Service {
-  id: string;
-  name: string;
-  description: string;
-}
-
-// 定义告警示例数据结构
-interface AlertPayload {
-  title: string;
-  description: string;
-  severity: string;
-  source: string;
-  details: {
-    hostname: string;
-    ip_address: string;
-  };
+  id: string
+  name: string
+  description: string
 }
 
 // 状态数据
-const service = ref<Service | null>(null);
-const loading = ref(true);
-const error = ref<string | null>(null);
-const activeTab = ref('basic');
+const service = ref<Service | null>(null)
+const loading = ref(true)
+const error = ref<string | null>(null)
+const activeTab = ref('basic')
 
 // 示例请求数据
-const examplePayload = ref<string>(JSON.stringify({
-  title: "系统告警示例",
-  description: "详细告警信息...",
-  severity: "critical",
-  source: "监控系统",
-  details: {
-    hostname: "server-01",
-    ip_address: "192.168.1.100"
-  }
-}, null, 2));
+const examplePayload = ref<string>(
+  JSON.stringify(
+    {
+      title: '系统告警示例',
+      description: '详细告警信息...',
+      severity: 'critical',
+      source: '监控系统',
+      details: {
+        hostname: 'server-01',
+        ip_address: '192.168.1.100',
+      },
+    },
+    null,
+    2,
+  ),
+)
 
 // 加载服务详情
 const loadServiceDetail = async () => {
-  loading.value = true;
-  error.value = null;
+  loading.value = true
+  error.value = null
 
   try {
     // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800))
     service.value = {
       id: serviceId,
       name: 'ServiceA',
-      description: '核心业务服务'
-    };
+      description: '核心业务服务',
+    }
   } catch (err) {
-    console.error('加载服务详情失败:', err);
-    error.value = '加载服务详情失败，请稍后重试';
-    service.value = null;
+    console.error('加载服务详情失败:', err)
+    error.value = '加载服务详情失败，请稍后重试'
+    service.value = null
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 // 页面加载时获取数据
 onMounted(() => {
-  loadServiceDetail();
-});
+  loadServiceDetail()
+})
 
 // 事件类型数据
 const incidentTypes = ref([
   { id: 1, name: 'TypeA', description: 'Default type', createdAt: '2023-10-27' },
-  { id: 2, name: 'TypeB', description: 'Critical type', createdAt: '2023-10-27' }
-]);
+  { id: 2, name: 'TypeB', description: 'Critical type', createdAt: '2023-10-27' },
+])
 
 // 路由配置数据
-const routes = ref([
-  { id: 1, service: 'ServiceA', target: 'Team A', createdAt: '2023-10-27' }
-]);
+const routes = ref([{ id: 1, service: 'ServiceA', target: 'Team A', createdAt: '2023-10-27' }])
 
 // 自定义字段数据
 const customFields = ref([
-  { id: 1, service: 'ServiceA', name: 'hostname', type: 'Text', createdAt: '2023-10-27' }
-]);
+  { id: 1, service: 'ServiceA', name: 'hostname', type: 'Text', createdAt: '2023-10-27' },
+])
 </script>
 
 <template>
@@ -207,7 +199,12 @@ const customFields = ref([
                     <div class="flex">
                       <label class="w-8rem text-500">请求示例:</label>
                       <div class="flex-1">
-                        <Textarea v-model="examplePayload" :readonly="true" rows="10" class="w-full font-mono text-sm" />
+                        <Textarea
+                          v-model="examplePayload"
+                          :readonly="true"
+                          rows="10"
+                          class="w-full font-mono text-sm"
+                        />
                         <div class="flex justify-content-end mt-2">
                           <Button class="p-button-text p-button-plain" severity="secondary">
                             <i class="pi pi-refresh mr-1" style="font-size: 0.8rem" />
@@ -296,4 +293,3 @@ const customFields = ref([
     </div>
   </div>
 </template>
-

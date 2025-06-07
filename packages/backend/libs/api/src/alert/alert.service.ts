@@ -9,33 +9,30 @@ export class AlertService {
   constructor(private readonly database: DatabaseService) {}
 
   async findAll(query: FindAllAlertDto): Promise<AlertResponseDto> {
-    const { 
-      page, 
-      pageSize, 
+    const {
+      page,
+      pageSize,
       sortFields,
       sortOrders,
-      titleValue, 
-      serviceValue, 
+      titleValue,
+      serviceValue,
       incidentIdValue,
       startTime,
-      endTime
+      endTime,
     } = query;
-    
+
     const where: Prisma.AlertWhereInput = {};
-    
+
     // 处理过滤条件
     if (titleValue) {
-      where.title = { 
-        contains: titleValue 
+      where.title = {
+        contains: titleValue,
       };
     }
 
     if (serviceValue) {
       where.service = {
-        OR: [
-          { id: serviceValue },
-          { name: { contains: serviceValue } }
-        ]
+        OR: [{ id: serviceValue }, { name: { contains: serviceValue } }],
       };
     }
 
@@ -52,19 +49,21 @@ export class AlertService {
     }
 
     // 处理多字段排序
-    let orderBy: Prisma.AlertOrderByWithRelationInput[] = [{
-      createdAt: 'desc' // 默认排序
-    }];
+    let orderBy: Prisma.AlertOrderByWithRelationInput[] = [
+      {
+        createdAt: 'desc', // 默认排序
+      },
+    ];
 
     if (sortFields) {
       const fields = sortFields.split(',');
       const orders = sortOrders || fields.map(() => 'asc');
 
       orderBy = fields.map((field, index) => ({
-        [field.trim()]: orders[index] || 'asc'
+        [field.trim()]: orders[index] || 'asc',
       }));
     }
-    
+
     const [alerts, total] = await Promise.all([
       this.database.client.alert.findMany({
         skip: (page - 1) * pageSize,
@@ -77,7 +76,7 @@ export class AlertService {
       }),
       this.database.client.alert.count({
         where,
-      })
+      }),
     ]);
 
     return {
