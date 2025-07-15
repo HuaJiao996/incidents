@@ -4,15 +4,17 @@ import {
   OnModuleInit,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from './prisma';
+
 
 // 定义扩展的 Prisma 客户端类型
-type ExtendPrismaClient = ReturnType<typeof createPrismaExtension>;
+type ExtendedPrismaClient = ReturnType<typeof createPrismaExtension>;
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DatabaseService.name);
-  private _prisma: ExtendPrismaClient;
+  private _prisma: ExtendedPrismaClient;
 
   constructor() {
     // 使用工厂函数创建扩展后的 Prisma 客户端
@@ -46,14 +48,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
 // 扩展工厂函数，为 Prisma 客户端添加通用功能
 function createPrismaExtension() {
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
   // 创建基础 Prisma 客户端实例
   const prisma = new PrismaClient({
-    log: [
-      { emit: 'stdout', level: 'query' },
-      { emit: 'stdout', level: 'error' },
-      { emit: 'stdout', level: 'warn' },
-    ],
-    errorFormat: 'pretty',
+      adapter
   });
 
   // 通过 $extends 机制添加功能

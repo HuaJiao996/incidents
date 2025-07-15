@@ -5,7 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-ts"
+  previewFeatures = ["driverAdapters", "queryCompiler"]
+  output          = "../libs/database/src/prisma"
 }
 
 datasource db {
@@ -71,7 +73,7 @@ model Team {
 }
 
 model Service {
-  id            String                  @id @default(nanoid())
+  id            String               @id @default(nanoid())
   name          String               @unique
   description   String?
   routes        ServiceRoute[]
@@ -113,19 +115,19 @@ model ServiceCustomField {
 }
 
 model IncidentType {
-  id                Int                             @id @default(autoincrement())
-  name              String
-  serviceId         String
-  service           Service                         @relation(fields: [serviceId], references: [id])
-  title             String // 使用模板表达式  context中包含alert 例：这是一个#{alert.title}
-  description       String // 使用模板表达式  context中包含alert 例：这是一个#{alert.description}
-  condition         String // 匹配时创建Incident，使用Jexl表达式 context中包含alert
-  groupCondition    String? // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident 使用Jexl表达式 context中包含当前alert和incident
+  id                 Int                             @id @default(autoincrement())
+  name               String
+  serviceId          String
+  service            Service                         @relation(fields: [serviceId], references: [id])
+  title              String // 使用模板表达式  context中包含alert 例：这是一个#{alert.title}
+  description        String // 使用模板表达式  context中包含alert 例：这是一个#{alert.description}
+  condition          String // 匹配时创建Incident，使用Jexl表达式 context中包含alert
+  groupCondition     String? // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident 使用Jexl表达式 context中包含当前alert和incident
   severityConditions IncidentTypeSeverityCondition[]
-  priority          Int                             @default(0)
-  incidents         Incident[]
-  createdAt         DateTime                        @default(now())
-  updatedAt         DateTime                        @updatedAt
+  priority           Int                             @default(0)
+  incidents          Incident[]
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
 
   @@map("incident_types")
 }
