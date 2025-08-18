@@ -1,0 +1,190 @@
+{
+  "Vue Component with TypeScript": {
+    "scope": "vue",
+    "prefix": "vue-ts",
+    "body": [
+      "<script setup lang=\"ts\">",
+      "import { ref, computed, onMounted } from 'vue'",
+      "",
+      "// Props",
+      "interface Props {",
+      "  $1",
+      "}",
+      "",
+      "const props = defineProps<Props>()",
+      "",
+      "// Emits",
+      "const emit = defineEmits<{",
+      "  $2",
+      "}>()",
+      "",
+      "// Reactive data",
+      "const $3 = ref('')",
+      "",
+      "// Computed",
+      "const $4 = computed(() => {",
+      "  return $5",
+      "})",
+      "",
+      "// Lifecycle",
+      "onMounted(() => {",
+      "  $6",
+      "})",
+      "</script>",
+      "",
+      "<template>",
+      "  <div class=\"$7\">",
+      "    $8",
+      "  </div>",
+      "</template>",
+      "",
+      "<style scoped>",
+      ".$7 {",
+      "  $9",
+      "}",
+      "</style>"
+    ],
+    "description": "Vue 3 Component with TypeScript setup"
+  },
+  "Elysia Route Handler": {
+    "scope": "typescript",
+    "prefix": "elysia-route",
+    "body": [
+      "app.$1('/$2', async ({ body, set }) => {",
+      "  try {",
+      "    $3",
+      "    ",
+      "    return {",
+      "      success: true,",
+      "      data: $4",
+      "    }",
+      "  } catch (error) {",
+      "    set.status = 500",
+      "    return {",
+      "      success: false,",
+      "      error: error instanceof Error ? error.message : 'Unknown error'",
+      "    }",
+      "  }",
+      "})"
+    ],
+    "description": "Elysia route handler with error handling"
+  },
+  "Prisma Model Query": {
+    "scope": "typescript",
+    "prefix": "prisma-query",
+    "body": [
+      "const $1 = await prisma.$2.findMany({",
+      "  where: {",
+      "    $3",
+      "  },",
+      "  include: {",
+      "    $4",
+      "  },",
+      "  orderBy: {",
+      "    $5: 'desc'",
+      "  }",
+      "})"
+    ],
+    "description": "Prisma query with common options"
+  },
+  "Logger with Context": {
+    "scope": "typescript",
+    "prefix": "log-ctx",
+    "body": [
+      "const logger = pino({",
+      "  name: '$1',",
+      "  level: process.env.LOG_LEVEL || 'info'",
+      "})",
+      "",
+      "logger.$2('$3', { $4 })"
+    ],
+    "description": "Pino logger with context"
+  },
+  "TypeScript Interface": {
+    "scope": "typescript",
+    "prefix": "ts-interface",
+    "body": [
+      "export interface $1 {",
+      "  id: string",
+      "  $2: $3",
+      "  createdAt: Date",
+      "  updatedAt: Date",
+      "}"
+    ],
+    "description": "TypeScript interface with common fields"
+  },
+  "TypeScript Type Guard": {
+    "scope": "typescript",
+    "prefix": "ts-guard",
+    "body": [
+      "export function is$1(value: unknown): value is $1 {",
+      "  return (",
+      "    typeof value === 'object' &&",
+      "    value !== null &&",
+      "    '$2' in value",
+      "  )",
+      "}"
+    ],
+    "description": "TypeScript type guard function"
+  },
+  "Async Function with Error Handling": {
+    "scope": "typescript",
+    "prefix": "async-fn",
+    "body": [
+      "export async function $1($2): Promise<$3> {",
+      "  try {",
+      "    $4",
+      "    ",
+      "    return $5",
+      "  } catch (error) {",
+      "    logger.error('$1 failed', { error, $6 })",
+      "    throw error",
+      "  }",
+      "}"
+    ],
+    "description": "Async function with error handling and logging"
+  },
+  "BullMQ Job Definition": {
+    "scope": "typescript",
+    "prefix": "bullmq-job",
+    "body": [
+      "export interface $1JobData {",
+      "  $2: $3",
+      "}",
+      "",
+      "export async function process$1Job(job: Job<$1JobData>) {",
+      "  const { $2 } = job.data",
+      "  ",
+      "  try {",
+      "    logger.info('Processing $1 job', { jobId: job.id, $2 })",
+      "    ",
+      "    $4",
+      "    ",
+      "    logger.info('$1 job completed', { jobId: job.id })",
+      "  } catch (error) {",
+      "    logger.error('$1 job failed', { jobId: job.id, error })",
+      "    throw error",
+      "  }",
+      "}"
+    ],
+    "description": "BullMQ job processor with logging"
+  },
+  "Environment Variable with Default": {
+    "scope": "typescript",
+    "prefix": "env-var",
+    "body": [
+      "const $1 = process.env.$2 || '$3'"
+    ],
+    "description": "Environment variable with default value"
+  },
+  "Database Transaction": {
+    "scope": "typescript",
+    "prefix": "db-transaction",
+    "body": [
+      "await prisma.$transaction(async (tx) => {",
+      "  $1",
+      "})"
+    ],
+    "description": "Prisma database transaction"
+  }
+}

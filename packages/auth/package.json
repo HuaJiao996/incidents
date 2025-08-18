@@ -1,0 +1,31 @@
+{
+  "name": "@incidents/auth",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "generate": "bunx @better-auth/cli generate --output=../../prisma/schema.prisma"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/auth.ts",
+      "default": "./src/auth.ts"
+    },
+    "./client": {
+      "types": "./src/auth-client.ts",
+      "default": "./src/auth-client.ts"
+    }
+  },
+  "devDependencies": {
+    "@better-auth/cli": "^1.2.12",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@incidents/database": "workspace:*",
+    "@prisma/client": "^6.14.0",
+    "better-auth": "^1.2.12",
+    "radash": "^12.1.1"
+  }
+}

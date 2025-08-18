@@ -1,0 +1,306 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client"
+  previewFeatures = ["driverAdapters", "queryCompiler"]
+  output          = "../packages/database/src/generated/prisma"
+}
+
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "../packages/database/src/generated/prismabox"
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CustomFieldType {
+  STRING
+  NUMBER
+  BOOLEAN
+  ENUM
+  DATE
+  ARRAY
+}
+
+model Service {
+  id            String               @id @default(nanoid())
+  name          String               @unique
+  description   String?
+  routes        ServiceRoute[]
+  customFields  ServiceCustomField[]
+  incidents     Incident[]
+  incidentTypes IncidentType[]
+  alerts        Alert[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  createdById   String
+  updatedById   String
+  createdBy     User                 @relation("ServiceCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User                 @relation("ServiceUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("service")
+}
+
+model ServiceRoute {
+  id          Int      @id @default(autoincrement())
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  order       Int
+  condition   String   @default("")
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  updatedById String
+  createdBy   User     @relation("ServiceRouteCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy   User     @relation("ServiceRouteUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("service_route")
+}
+
+model ServiceCustomField {
+  id          Int             @id @default(autoincrement())
+  serviceId   String
+  service     Service         @relation(fields: [serviceId], references: [id])
+  path        String
+  type        CustomFieldType
+  required    Boolean         @default(false)
+  enumValues  Json            @default("[]")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  createdById String
+  updatedById String
+
+  @@map("service_custom_field")
+}
+
+model IncidentType {
+  id                 Int                             @id @default(autoincrement())
+  name               String
+  serviceId          String
+  service            Service                         @relation(fields: [serviceId], references: [id])
+  title              String // 使用模板表达式  context中包含alert 例：这是一个#{alert.title}
+  description        String // 使用模板表达式  context中包含alert 例：这是一个#{alert.description}
+  condition          String // 匹配时创建Incident，使用Jexl表达式 context中包含alert
+  groupCondition     String? // 根据这个条件先查找是否有为resolve的Incident，如果有则不创建 并将alert关联到对应的Incident 使用Jexl表达式 context中包含当前alert和incident
+  severityConditions IncidentTypeSeverityCondition[]
+  priority           Int                             @default(0)
+  incidents          Incident[]
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
+  createdById        String
+  updatedById        String
+  createdBy          User                            @relation("IncidentTypeCreatedBy", fields: [createdById], references: [id])
+  updatedBy          User                            @relation("IncidentTypeUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("incident_type")
+}
+
+model IncidentTypeSeverityCondition {
+  id             Int              @id @default(autoincrement())
+  severity       IncidentSeverity
+  incidentTypeId Int
+  incidentType   IncidentType     @relation(fields: [incidentTypeId], references: [id])
+  condition      String // 使用Jexl表达式
+  order          Int
+
+  @@map("incident_type_severity_condition")
+}
+
+model GlobalCustomField {
+  id          Int             @id @default(autoincrement())
+  path        String
+  type        CustomFieldType
+  required    Boolean         @default(false)
+  enumValues  Json?           @default("[]")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  createdById String
+  updatedById String
+  createdBy   User            @relation("GlobalCustomFieldCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User            @relation("GlobalCustomFieldUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("global_custom_field")
+}
+
+model Alert {
+  id           Int       @id @default(autoincrement())
+  title        String
+  content      String
+  customFields Json?     @default("{}")
+  serviceId    String
+  service      Service   @relation(fields: [serviceId], references: [id])
+  incidentId   Int?
+  incident     Incident? @relation(fields: [incidentId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  createdById  String
+  createdBy    Apikey    @relation("ApikeyCreatedAlerts", fields: [createdById], references: [id])
+
+  @@map("alert")
+}
+
+model Incident {
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String?
+  status      IncidentStatus   @default(OPEN)
+  severity    IncidentSeverity
+  serviceId   String
+  service     Service          @relation(fields: [serviceId], references: [id])
+  typeId      Int?
+  type        IncidentType?    @relation(fields: [typeId], references: [id])
+  alerts      Alert[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  createdById String
+  createdBy   Apikey           @relation("ApikeyCreatedIncidents", fields: [createdById], references: [id])
+  updatedById String
+  updatedBy   Apikey           @relation("ApikeyUpdatedIncidents", fields: [updatedById], references: [id])
+
+  @@map("incident")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  impersonatedBy String?
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+
+  apikeys Apikey[]
+
+  // Service relations
+  createdServices           Service[]           @relation("ServiceCreatedBy")
+  updatedServices           Service[]           @relation("ServiceUpdatedBy")
+  // ServiceRoute relations
+  createdServiceRoutes      ServiceRoute[]      @relation("ServiceRouteCreatedBy")
+  updatedServiceRoutes      ServiceRoute[]      @relation("ServiceRouteUpdatedBy")
+  // GlobalCustomField relations
+  createdGlobalCustomFields GlobalCustomField[] @relation("GlobalCustomFieldCreatedBy")
+  updatedGlobalCustomFields GlobalCustomField[] @relation("GlobalCustomFieldUpdatedBy")
+  // IncidentType relations
+  createdIncidentTypes      IncidentType[]      @relation("IncidentTypeCreatedBy")
+  updatedIncidentTypes      IncidentType[]      @relation("IncidentTypeUpdatedBy")
+  // Apikey relations
+  createdApikeys            Apikey[]            @relation("ApikeyCreatedBy")
+  updatedApikeys            Apikey[]            @relation("ApikeyUpdatedBy")
+
+  role       String?
+  banned     Boolean?
+  banReason  String?
+  banExpires DateTime?
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Apikey {
+  id                  String    @id
+  name                String?
+  start               String?
+  prefix              String?
+  key                 String
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refillInterval      Int?
+  refillAmount        Int?
+  lastRefillAt        DateTime?
+  enabled             Boolean?
+  rateLimitEnabled    Boolean?
+  rateLimitTimeWindow Int?
+  rateLimitMax        Int?
+  requestCount        Int?
+  remaining           Int?
+  lastRequest         DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime
+  updatedAt           DateTime
+  permissions         String?
+  metadata            String?
+
+  createdAlerts    Alert[]    @relation("ApikeyCreatedAlerts")
+  createdIncidents Incident[] @relation("ApikeyCreatedIncidents")
+  updatedIncidents Incident[] @relation("ApikeyUpdatedIncidents")
+
+  createdById String
+  createdBy   User   @relation("ApikeyCreatedBy", fields: [createdById], references: [id])
+  updatedById String
+  updatedBy   User   @relation("ApikeyUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("apikey")
+}

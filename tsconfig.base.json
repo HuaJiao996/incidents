@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": ["ESNext"],
+    "moduleDetection": "force",
+    "jsx": "preserve",
+    
+    /* Modules */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {},
+    "resolveJsonModule": true,
+    "types": ["bun-types"],
+    
+    /* JavaScript Support */
+    "allowJs": true,
+    
+    /* Emit */
+    "noEmit": true,
+    
+    /* Interop Constraints */
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    /* Type Checking */
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    
+    /* Completeness */
+    "skipLibCheck": true,
+    
+    /* Additional Options */
+    "allowImportingTsExtensions": true
+  },
+  "exclude": ["**/node_modules", "**/dist"]
+}

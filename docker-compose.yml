@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: incidents-postgres
+    environment:
+      POSTGRES_DB: incidents
+      POSTGRES_USER: incidents_user
+      POSTGRES_PASSWORD: incidents_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U incidents_user -d incidents"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - incidents-network
+
+  # Redis 缓存和消息队列
+  redis:
+    image: redis:7-alpine
+    container_name: incidents-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - incidents-network
+
+  # 核心服务器
+  core-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: incidents-core-server
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://incidents_user:incidents_password@postgres:5432/incidents
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    command: ["bun", "run", "--cwd", "apps/core-server", "start"]
+
+  # REST API 服务器
+  rest-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: incidents-rest-server
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://incidents_user:incidents_password@postgres:5432/incidents
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    command: ["bun", "run", "--cwd", "apps/rest-server", "dev"]
+
+  # Web 前端应用
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.web
+    container_name: incidents-web
+    ports:
+      - "80:80"
+    depends_on:
+      - rest-server
+    networks:
+      - incidents-network
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: incidents-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - rest-server
+    networks:
+      - incidents-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  incidents-network:
+    driver: bridge

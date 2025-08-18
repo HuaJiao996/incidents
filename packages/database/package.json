@@ -1,0 +1,30 @@
+{
+  "name": "@incidents/database",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "generate": "bunx prisma generate"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./schema/*": {
+      "types": "./src/generated/prismabox/*.ts",
+      "default": "./src/generated/prismabox/*.ts"
+    }
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^6.14.0",
+    "@prisma/client": "^6.14.0",
+    "prisma": "^6.14.0",
+    "prismabox": "^1.1.25"
+  }
+}

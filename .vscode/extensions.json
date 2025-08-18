@@ -1,0 +1,49 @@
+{
+  "recommendations": [
+    // TypeScript 和 JavaScript
+    "ms-vscode.vscode-typescript-next",
+    
+    // Vue.js 开发
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
+    
+    // 代码格式化和质量
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "oxc-project.oxc-vscode",
+    
+    // Git 工具
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    
+    // 数据库
+    "ms-vscode.vscode-json",
+    "bradlc.vscode-tailwindcss",
+    
+    // 开发工具
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
+    "ms-vscode.vscode-json",
+    
+    // 包管理器
+    "oven.bun-vscode",
+    
+    // 实用工具
+    "streetsidesoftware.code-spell-checker",
+    "ms-vscode.vscode-json",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-json",
+    
+    // Docker 支持
+    "ms-azuretools.vscode-docker",
+    
+    // 主题和图标
+    "PKief.material-icon-theme",
+    "GitHub.github-vscode-theme"
+  ],
+  "unwantedRecommendations": [
+    "ms-vscode.vscode-typescript",
+    "octref.vetur"
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "folders": [
+    {
+      "name": "🏠 Root",
+      "path": ".",
+    },
+    {
+      "name": "🌐 Web App",
+      "path": "./apps/web",
+    },
+    {
+      "name": "⚙️ Core Server",
+      "path": "./apps/core-server",
+    },
+    {
+      "name": "🔌 REST API",
+      "path": "./apps/rest-server",
+    },
+    {
+      "name": "🔐 Auth Package",
+      "path": "./packages/auth",
+    },
+    {
+      "name": "🗄️ Database Package",
+      "path": "./packages/database",
+    },
+    {
+      "name": "📦 Common Package",
+      "path": "./packages/common",
+    },
+    {
+      "name": "🔄 Queue Package",
+      "path": "./packages/queue",
+    },
+    {
+      "name": "🛠️ Scripts",
+      "path": "./scripts",
+    },
+  ],
+  "settings": {
+    // 工作区特定设置
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.workspaceSymbols.scope": "allOpenProjects",
+
+    // 多根工作区设置
+    "explorer.compactFolders": false,
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.ts": "${capture}.js,${capture}.d.ts,${capture}.js.map",
+      "*.vue": "${capture}.vue.d.ts",
+      "package.json": "package-lock.json,bun.lock,yarn.lock,pnpm-lock.yaml",
+      "tsconfig.json": "tsconfig.*.json",
+      "vite.config.*": "vitest.config.*",
+      ".env": ".env.*,!.env.example",
+      "docker-compose.yml": "docker-compose.*.yml,Dockerfile*",
+      ".gitignore": ".gitattributes,.dockerignore,.prettierignore",
+    },
+
+    // 搜索设置
+    "search.useGlobalIgnoreFiles": true,
+    "search.useParentIgnoreFiles": true,
+
+    // 文件监视器设置
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/build/**": true,
+      "**/.git/**": true,
+      "**/bun.lock": true,
+    },
+
+    // 工作区推荐设置
+    "workbench.startupEditor": "welcomePageInEmptyWorkbench",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.enablePreviewFromQuickOpen": false,
+    "cSpell.words": ["Alova", "Elysia", "primevue", "radash", "rengine", "tryit"],
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "Vue.volar",
+      "Vue.vscode-typescript-vue-plugin",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "oxc-project.oxc-vscode",
+      "eamodio.gitlens",
+      "mhutchie.git-graph",
+      "bradlc.vscode-tailwindcss",
+      "oven.bun-vscode",
+      "streetsidesoftware.code-spell-checker",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense",
+      "ms-azuretools.vscode-docker",
+      "PKief.material-icon-theme",
+      "GitHub.github-vscode-theme",
+    ],
+    "unwantedRecommendations": ["ms-vscode.vscode-typescript", "octref.vetur"],
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Setup Project",
+        "type": "shell",
+        "command": "bun",
+        "args": ["run", "setup:full"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "problemMatcher": [],
+      },
+      {
+        "label": "Start All Services",
+        "type": "shell",
+        "command": "bun",
+        "args": ["run", "dev"],
+        "group": {
+          "kind": "build",
+          "isDefault": true,
+        },
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "dedicated",
+        },
+        "problemMatcher": [],
+        "isBackground": true,
+      },
+    ],
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug Workspace",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/scripts/setup.ts",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "bun",
+        "runtimeArgs": ["--inspect"],
+        "args": ["dev"],
+        "env": {
+          "NODE_ENV": "development",
+        },
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+      },
+    ],
+  },
+}
